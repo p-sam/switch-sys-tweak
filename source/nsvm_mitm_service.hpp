@@ -30,14 +30,14 @@ class NsVmMitmService : public IMitmServiceObject {
 		}
 
 		static bool ShouldMitm(u64 pid, u64 tid) {
-			return tid >= 0x0100000000010000ULL;
+			return true;
 		}
 
 		static void PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx);
 
 	protected:
 		/* Overridden commands. */
-		Result NeedsUpdateVulnerability(OutPointerWithServerSize<u8, 0x1> out);
+		Result NeedsUpdateVulnerability(Out<u8> out);
 	public:
 		DEFINE_SERVICE_DISPATCH_TABLE {
 			MakeServiceCommandMeta<NsVmCmd_NeedsUpdateVulnerability, &NsVmMitmService::NeedsUpdateVulnerability>(),

@@ -23,7 +23,7 @@ void NsVmMitmService::PostProcess(IMitmServiceObject *obj, IpcResponseContext *c
 	/* No commands need postprocessing. */    
 }
 
-Result NsVmMitmService::NeedsUpdateVulnerability(OutPointerWithServerSize<u8, 0x1> out) { 
-	*(out.pointer) = 0;
+Result NsVmMitmService::NeedsUpdateVulnerability(Out<u8> out) {
+	out.SetValue(0);
 	return 0;
 }
