@@ -6,10 +6,6 @@ ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
 endif
 
-ifeq ($(strip $(LIBSTRATOSPHERE)),)
-$(error "Please set LIBSTRATOSPHERE in your environment. export LIBSTRATOSPHERE=<path to>/libstratosphere")
-endif
-
 TOPDIR ?= $(CURDIR)
 include $(DEVKITPRO)/libnx/switch_rules
 
@@ -51,6 +47,7 @@ LIBS	:= -lstratosphere -lnx
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
+LIBSTRATOSPHERE := $(CURDIR)/libstratosphere
 LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(LIBSTRATOSPHERE)
 
 
@@ -118,11 +115,13 @@ endif
 all: $(BUILD)
 
 $(BUILD):
+	@$(MAKE) -C $(LIBSTRATOSPHERE)
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
+	@$(MAKE) -C $(LIBSTRATOSPHERE) clean
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET).kip $(TARGET).nsp $(TARGET).npdm $(TARGET).nso $(TARGET).elf
 
@@ -139,14 +138,15 @@ DEPENDS	:=	$(OFILES:.o=.d)
 all	:	$(OUTPUT).kip $(OUTPUT).nsp
 
 ifeq ($(strip $(APP_JSON)),)
-$(OUTPUT).nsp	:	$(OUTPUT).nso
+$(OUTPUT).nsp: $(OUTPUT).nso
 else
-$(OUTPUT).nsp	:	$(OUTPUT).nso $(OUTPUT).npdm
+$(OUTPUT).nsp: $(OUTPUT).nso $(OUTPUT).npdm
 endif
 
-$(OUTPUT).kip	:	$(OUTPUT).elf $(OUTPUT).json
+$(OUTPUT).kip: $(OUTPUT).elf $(OUTPUT).kip.json
+	@elf2kip $< $(OUTPUT).kip.json $@
 
-$(OUTPUT).elf	:	$(OFILES)
+$(OUTPUT).elf: $(OFILES)
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data

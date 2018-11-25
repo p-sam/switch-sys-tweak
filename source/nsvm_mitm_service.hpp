@@ -30,8 +30,7 @@ class NsVmMitmService : public IMitmServiceObject {
 		}
 
 		static bool ShouldMitm(u64 pid, u64 tid) {
-			/* Only MitM LibraryAppletWeb. */
-			return tid == 0x010000000000100AULL;
+			return tid >= 0x0100000000010000ULL;
 		}
 
 		static void PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx);
