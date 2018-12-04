@@ -17,7 +17,7 @@
  
 #pragma once
 #include <switch.h>
-#include "libstratosphere.hpp"
+#include <stratosphere.hpp>
 
 enum NsVmCmd : u32 {
 	NsVmCmd_NeedsUpdateVulnerability = 1200,
@@ -25,9 +25,7 @@ enum NsVmCmd : u32 {
 
 class NsVmMitmService : public IMitmServiceObject {
 	public:
-		NsVmMitmService(std::shared_ptr<Service> s) : IMitmServiceObject(s) {
-			/* ... */
-		}
+		NsVmMitmService(std::shared_ptr<Service> s, u64 pid) : IMitmServiceObject(s, pid) {}
 
 		static bool ShouldMitm(u64 pid, u64 tid) {
 			return true;

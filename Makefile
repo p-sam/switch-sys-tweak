@@ -17,11 +17,12 @@ include $(DEVKITPRO)/libnx/switch_rules
 # INCLUDES is a list of directories containing header files
 # EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
 #---------------------------------------------------------------------------------
-TARGET		:=	nsvm_safe_mitm
+TARGET		:=	nsvm-safe-mitm
 BUILD		:=	build
-SOURCES		:=	source
+OUTDIR		:=	out
+SOURCES		:=	src
 DATA		:=	data
-INCLUDES	:=	include
+INCLUDES	:=	src
 EXEFS_SRC	:=	exefs_src
 
 DEFINES	:=	-DDISABLE_IPC
@@ -47,7 +48,7 @@ LIBS	:= -lstratosphere -lnx
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBSTRATOSPHERE := $(CURDIR)/libstratosphere
+LIBSTRATOSPHERE := $(CURDIR)/lib/libstratosphere
 LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(LIBSTRATOSPHERE)
 
 
@@ -58,7 +59,7 @@ LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(LIBSTRATOSPHERE)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(OUTDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -96,18 +97,8 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 export BUILD_EXEFS_SRC := $(TOPDIR)/$(EXEFS_SRC)
 
-ifeq ($(strip $(CONFIG_JSON)),)
-	jsons := $(wildcard *.json)
-	ifneq (,$(findstring $(TARGET).json,$(jsons)))
-		export APP_JSON := $(TOPDIR)/$(TARGET).json
-	else
-		ifneq (,$(findstring config.json,$(jsons)))
-			export APP_JSON := $(TOPDIR)/config.json
-		endif
-	endif
-else
-	export APP_JSON := $(TOPDIR)/$(CONFIG_JSON)
-endif
+export APP_JSON := $(TOPDIR)/$(SOURCES)/app.json
+export KIP_JSON := $(TOPDIR)/$(SOURCES)/kip.json
 
 .PHONY: $(BUILD) clean all
 
@@ -117,13 +108,14 @@ all: $(BUILD)
 $(BUILD):
 	@$(MAKE) -C $(LIBSTRATOSPHERE)
 	@[ -d $@ ] || mkdir -p $@
+	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
 	@$(MAKE) -C $(LIBSTRATOSPHERE) clean
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).kip $(TARGET).nsp $(TARGET).npdm $(TARGET).nso $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).kip $(TARGET).nsp $(TARGET).npdm $(TARGET).nso $(TARGET).elf $(OUTDIR)
 
 
 #---------------------------------------------------------------------------------
@@ -135,16 +127,14 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all	:	$(OUTPUT).kip $(OUTPUT).nsp
 
-ifeq ($(strip $(APP_JSON)),)
-$(OUTPUT).nsp: $(OUTPUT).nso
-else
+all: $(OUTPUT).kip $(OUTPUT).nsp
+
 $(OUTPUT).nsp: $(OUTPUT).nso $(OUTPUT).npdm
-endif
 
-$(OUTPUT).kip: $(OUTPUT).elf $(OUTPUT).kip.json
-	@elf2kip $< $(OUTPUT).kip.json $@
+$(OUTPUT).kip: $(OUTPUT).elf $(KIP_JSON)
+	@elf2kip $< $(KIP_JSON) $@
+	@echo built ... $(notdir $@)
 
 $(OUTPUT).elf: $(OFILES)
 

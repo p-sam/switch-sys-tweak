@@ -22,7 +22,6 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 
-#include "setsys_mitm_service.hpp"
 #include "nsvm_mitm_service.hpp"
 
 extern "C" {
@@ -64,16 +63,10 @@ void __appInit(void) {
     if (R_FAILED(rc)) {
         fatalSimple(rc);
     }
-    
-    rc = setsysInitialize();
-    if (R_FAILED(rc)) {
-        fatalSimple(rc);
-    }
 }
 
 void __appExit(void) {
     /* Cleanup services. */
-    setsysExit();
     nsvmExit();
     smExit();
 }
@@ -94,7 +87,6 @@ int main(int argc, char **argv)
     auto server_manager = new MitmManager(1);
         
     /* Create fsp-srv mitm. */
-    AddMitmServerToManager<SetSysMitmService>(server_manager, "set:sys", 4);
     AddMitmServerToManager<NsVmMitmService>(server_manager, "ns:vm", 4);
 
     /* Loop forever, servicing our services. */
