@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2018 Atmosphère-NX
  * Copyright (c) 2018 p-sam
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -15,15 +14,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <mutex>
 #include <switch.h>
 #include "nsvm_mitm_service.hpp"
+#include "file_utils.hpp"
 
-void NsVmMitmService::PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx) {
-	/* No commands need postprocessing. */    
+#define NSVM_MITM_SERVICE_NAME "ns:vm"
+
+void NsVmMitmService::PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx) {}
+
+bool NsVmMitmService::ShouldMitm(u64 pid, u64 tid) {
+	bool should_mitm = true;
+	FILE_LOG("\"%s\"<>::ShouldMitm(%ld, 0x%lx); // %s\n", NSVM_MITM_SERVICE_NAME, pid, tid, should_mitm ? "true" : "false");
+	return should_mitm;
 }
 
 Result NsVmMitmService::NeedsUpdateVulnerability(Out<u8> out) {
+	Result rc = 0;
 	out.SetValue(0);
-	return 0;
+	FILE_LOG("\"%s\"<%ld|0x%lx>::NeedsUpdateVulnerability(); // %x[%x]\n", NSVM_MITM_SERVICE_NAME, process_id, title_id, out.GetValue(), rc);
+	return rc;
+}
+
+void NsVmMitmService::AddToManager(SessionManagerBase *manager) {
+	AddMitmServerToManager<NsVmMitmService>(manager, "ns:vm", 4);
 }

@@ -17,7 +17,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 # INCLUDES is a list of directories containing header files
 # EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
 #---------------------------------------------------------------------------------
-TARGET		:=	nsvm-safe-mitm
+TARGET		:=	sys-tweak
 BUILD		:=	build
 OUTDIR		:=	out
 SOURCES		:=	src
@@ -25,8 +25,18 @@ DATA		:=	data
 INCLUDES	:=	src
 EXEFS_SRC	:=	exefs_src
 
-DEFINES	:=	-DDISABLE_IPC
+DEFINES	:=	-DDISABLE_IPC -DTARGET="\"$(TARGET)\""
 
+#---------------------------------------------------------------------------------
+# options for features
+#---------------------------------------------------------------------------------
+FEATURES := NSVM_SAFE
+TOGGLES := LOGGING
+#---------------------------------------------------------------------------------
+ENABLED_FEATURES := $(foreach feat,$(FEATURES),$(if $(or $(FEAT_$(feat)),$(FEAT_ALL)),$(feat)))
+DEFINES += $(foreach feat,$(ENABLED_FEATURES),-DHAVE_$(feat))
+ENABLED_TOGGLES := $(foreach toggle,$(TOGGLES),$(if $(or $(TOGL_$(feat)),$(TOGL_ALL)),$(toggle)))
+DEFINES += $(foreach toggle,$(ENABLED_TOGGLES),-DENABLE_$(toggle))
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
@@ -106,6 +116,9 @@ export KIP_JSON := $(TOPDIR)/$(SOURCES)/kip.json
 all: $(BUILD)
 
 $(BUILD):
+	@[ -n "$(ENABLED_FEATURES)" ] || (echo "Please enable at least one feature with FEAT_X env vars, where X can be (ALL $(FEATURES))" 1>&2; exit 1)
+	@echo "* ENABLED_FEATURES: $(ENABLED_FEATURES)"
+	@echo "* ENABLED_TOGGLES: $(ENABLED_TOGGLES)"
 	@$(MAKE) -C $(LIBSTRATOSPHERE)
 	@[ -d $@ ] || mkdir -p $@
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)

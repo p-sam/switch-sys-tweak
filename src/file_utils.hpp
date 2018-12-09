@@ -18,24 +18,16 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 
-enum NsVmCmd : u32 {
-	NsVmCmd_NeedsUpdateVulnerability = 1200,
-};
+#ifdef ENABLE_LOGGING
+	#define FILE_LOG(...) FileUtils::Log(__VA_ARGS__)
+#else
+	#define FILE_LOG(...) (void)0
+#endif
 
-class NsVmMitmService : public IMitmServiceObject {
+class FileUtils {
 	public:
-		NsVmMitmService(std::shared_ptr<Service> s, u64 pid) : IMitmServiceObject(s, pid) {}
-
-		static bool ShouldMitm(u64 pid, u64 tid);
-
-		static void PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx);
-
-	protected:
-		/* Overridden commands. */
-		Result NeedsUpdateVulnerability(Out<u8> out);
-	public:
-		DEFINE_SERVICE_DISPATCH_TABLE {
-			MakeServiceCommandMeta<NsVmCmd_NeedsUpdateVulnerability, &NsVmMitmService::NeedsUpdateVulnerability>(),
-		};
-		static void AddToManager(SessionManagerBase *manager);
+		static void _InitializeThreadFunc(void *args);
+		static void InitializeAsync();
+		static bool IsInitialized();
+		static void Log(const char *format, ...);
 };

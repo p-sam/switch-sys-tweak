@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Atmosphère-NX
+ * Copyright (c) 2018 p-sam
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -23,19 +23,20 @@
 #include <stratosphere.hpp>
 
 #include "nsvm_mitm_service.hpp"
+#include "file_utils.hpp"
 
 extern "C" {
-    extern u32 __start__;
+	extern u32 __start__;
 
-    u32 __nx_applet_type = AppletType_None;
+	u32 __nx_applet_type = AppletType_None;
 
-    #define INNER_HEAP_SIZE 0x20000
-    size_t nx_inner_heap_size = INNER_HEAP_SIZE;
-    char   nx_inner_heap[INNER_HEAP_SIZE];
-    
-    void __libnx_initheap(void);
-    void __appInit(void);
-    void __appExit(void);
+	#define INNER_HEAP_SIZE 0x20000
+	size_t nx_inner_heap_size = INNER_HEAP_SIZE;
+	char   nx_inner_heap[INNER_HEAP_SIZE];
+	
+	void __libnx_initheap(void);
+	void __appInit(void);
+	void __appExit(void);
 }
 
 
@@ -52,48 +53,50 @@ void __libnx_initheap(void) {
 }
 
 void __appInit(void) {
-    Result rc;
-    
-    rc = smInitialize();
-    if (R_FAILED(rc)) {
-        fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
-    }
-    
-    rc = nsvmInitialize();
-    if (R_FAILED(rc)) {
-        fatalSimple(rc);
-    }
+	Result rc;
+	
+	rc = smInitialize();
+	if (R_FAILED(rc)) {
+		fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
+	}
+	
+	rc = nsvmInitialize();
+	if (R_FAILED(rc)) {
+		fatalSimple(rc);
+	}
 }
 
 void __appExit(void) {
-    /* Cleanup services. */
-    nsvmExit();
-    smExit();
+	/* Cleanup services. */
+	nsvmExit();
+	smExit();
 }
 
 struct MitmManagerOptions {
-    static const size_t PointerBufferSize = 0x100;
-    static const size_t MaxDomains = 4;
-    static const size_t MaxDomainObjects = 0x100;
+	static const size_t PointerBufferSize = 0x100;
+	static const size_t MaxDomains = 4;
+	static const size_t MaxDomainObjects = 0x100;
 };
 
 using MitmManager = WaitableManager<MitmManagerOptions>;
 
 int main(int argc, char **argv)
 {
-    consoleDebugInit(debugDevice_SVC);
-        
-    /* TODO: What's a good timeout value to use here? */
-    auto server_manager = new MitmManager(1);
-        
-    /* Create fsp-srv mitm. */
-    AddMitmServerToManager<NsVmMitmService>(server_manager, "ns:vm", 4);
+	consoleDebugInit(debugDevice_SVC);
+	FileUtils::InitializeAsync();
+		
+	/* TODO: What's a good timeout value to use here? */
+	auto server_manager = new MitmManager(1);
 
-    /* Loop forever, servicing our services. */
-    server_manager->Process();
-    
-    delete server_manager;
+#ifdef HAVE_NSVM_SAFE
+	NsVmMitmService::AddToManager(server_manager);
+#endif
 
-    return 0;
+	/* Loop forever, servicing our services. */
+	server_manager->Process();
+	
+	delete server_manager;
+
+	return 0;
 }
 
