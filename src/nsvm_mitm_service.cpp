@@ -23,7 +23,7 @@
 void NsVmMitmService::PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx) {}
 
 bool NsVmMitmService::ShouldMitm(u64 pid, u64 tid) {
-	bool should_mitm = true;
+	bool should_mitm = (tid == 0x010000000000100AULL || tid == 0x010000000000100FULL); // Webapplet online + offline
 	FILE_LOG("\"%s\"<>::ShouldMitm(%ld, 0x%lx); // %s\n", NSVM_MITM_SERVICE_NAME, pid, tid, should_mitm ? "true" : "false");
 	return should_mitm;
 }
@@ -36,5 +36,5 @@ Result NsVmMitmService::NeedsUpdateVulnerability(Out<u8> out) {
 }
 
 void NsVmMitmService::AddToManager(SessionManagerBase *manager) {
-	AddMitmServerToManager<NsVmMitmService>(manager, "ns:vm", 4);
+	AddMitmServerToManager<NsVmMitmService>(manager, NSVM_MITM_SERVICE_NAME, 4);
 }

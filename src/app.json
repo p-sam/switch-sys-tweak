@@ -21,8 +21,7 @@
 		"fatal:u",
 		"fsp-srv",
 		"spl:",
-		"ns:vm",
-		"fsp-srv"
+		"ns:vm"
 	],
 	"kernel_capabilities": [
 		{

@@ -74,7 +74,6 @@ void FileUtils::Log(const char *format, ...) {
 
 void FileUtils::InitializeAsync() {
 	Thread init_thread = {0};
-	if (R_SUCCEEDED(threadCreate(&init_thread, &FileUtils::_InitializeThreadFunc, NULL, 0x4000, 0x15, 0))) {
-		threadStart(&init_thread);
-	}
+	threadCreate(&init_thread, &FileUtils::_InitializeThreadFunc, NULL, 0x4000, 0x15, 0);
+	threadStart(&init_thread);
 }
