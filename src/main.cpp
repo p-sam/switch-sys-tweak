@@ -22,7 +22,10 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 
+#ifdef HAVE_NSVM_SAFE
 #include "nsvm_mitm_service.hpp"
+#endif
+
 #include "file_utils.hpp"
 
 extern "C" {
@@ -59,17 +62,20 @@ void __appInit(void) {
 	if (R_FAILED(rc)) {
 		fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
 	}
-	
+
+#ifdef HAVE_NSVM_SAFE
 	rc = nsvmInitialize();
 	if (R_FAILED(rc)) {
 		fatalSimple(rc);
 	}
+#endif
 }
 
 void __appExit(void) {
-	/* Cleanup services. */
-	nsvmExit();
 	smExit();
+#ifdef HAVE_NSVM_SAFE
+	nsvmExit();
+#endif
 }
 
 struct MitmManagerOptions {
