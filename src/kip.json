@@ -1,5 +1,5 @@
 {
-    "name" : "nsvm:safe",
+    "name" : "sys:tweak",
     "title_id" : "0x01ff415446660000",
     "main_thread_stack_size" : "0x00004000",
     "main_thread_priority": 49,
