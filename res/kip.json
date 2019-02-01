@@ -1,6 +1,6 @@
 {
     "name" : "sys:tweak",
-    "title_id" : "0x01FF415446660000",
+    "title_id" : "0x00FF747765616BFF",
     "main_thread_stack_size" : "0x00004000",
     "main_thread_priority": 49,
     "default_cpu_id": 3,

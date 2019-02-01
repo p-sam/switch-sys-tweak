@@ -20,6 +20,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=	sys-tweak
 BUILD		:=	build
 OUTDIR		:=	out
+RESOURCES	:=	res
 SOURCES		:=	src
 DATA		:=	data
 INCLUDES	:=	src
@@ -107,8 +108,8 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 export BUILD_EXEFS_SRC := $(TOPDIR)/$(EXEFS_SRC)
 
-export APP_JSON := $(TOPDIR)/$(SOURCES)/app.json
-export KIP_JSON := $(TOPDIR)/$(SOURCES)/kip.json
+export APP_JSON := $(TOPDIR)/$(RESOURCES)/app.json
+export KIP_JSON := $(TOPDIR)/$(RESOURCES)/kip.json
 
 .PHONY: $(BUILD) clean all
 
