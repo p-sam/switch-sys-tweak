@@ -23,15 +23,15 @@
 void NsVmMitmService::PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx) {}
 
 bool NsVmMitmService::ShouldMitm(u64 pid, u64 tid) {
-	bool should_mitm = (tid == 0x0100000000001011ULL || tid == 0x010000000000100AULL || tid == 0x010000000000100FULL); // Webapplet online + offline + wifiwebauth
-	FILE_LOG("\"%s\"<>::ShouldMitm(%ld, 0x%lx); // %s\n", NSVM_MITM_SERVICE_NAME, pid, tid, should_mitm ? "true" : "false");
+	bool should_mitm = (tid == TitleId_AppletWifiWebAuth || tid == TitleId_AppletWeb || tid == TitleId_AppletOfflineWeb);
+	FileUtils::LogLine("\"%s\"<>::ShouldMitm(%ld, 0x%016lx); // %s", NSVM_MITM_SERVICE_NAME, pid, tid, should_mitm ? "true" : "false");
 	return should_mitm;
 }
 
 Result NsVmMitmService::NeedsUpdateVulnerability(Out<u8> out) {
 	Result rc = 0;
 	out.SetValue(0);
-	FILE_LOG("\"%s\"<%ld|0x%lx>::NeedsUpdateVulnerability(); // %x[%x]\n", NSVM_MITM_SERVICE_NAME, process_id, title_id, out.GetValue(), rc);
+	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::NeedsUpdateVulnerability(); // %x[%x]", NSVM_MITM_SERVICE_NAME, process_id, title_id, out.GetValue(), rc);
 	return rc;
 }
 

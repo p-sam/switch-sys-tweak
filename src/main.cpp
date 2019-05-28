@@ -25,6 +25,9 @@
 #ifdef HAVE_NSVM_SAFE
 #include "nsvm_mitm_service.hpp"
 #endif
+#ifdef HAVE_NSAM_CONTROL
+#include "nsam2_mitm_service.hpp"
+#endif
 
 #include "file_utils.hpp"
 
@@ -40,8 +43,26 @@ extern "C" {
 	void __libnx_initheap(void);
 	void __appInit(void);
 	void __appExit(void);
+
+	/* Exception handling. */
+	alignas(16) u8 __nx_exception_stack[0x1000];
+	u64 __nx_exception_stack_size = sizeof(__nx_exception_stack);
+	void __libnx_exception_handler(ThreadExceptionDump *ctx);
+	u64 __stratosphere_title_id = 0x00FF747765616BFFUL;
+	void __libstratosphere_exception_handler(AtmosphereFatalErrorContext *ctx);
 }
 
+void __libnx_exception_handler(ThreadExceptionDump *ctx) {
+	StratosphereCrashHandler(ctx);
+}
+
+void __libstratosphere_exception_handler(AtmosphereFatalErrorContext *ctx) {
+	Result rc = bpcAmsInitialize();
+	if(R_SUCCEEDED(rc)) {
+		bpcAmsRebootToFatalError(ctx);
+		bpcAmsExit();
+	}
+}
 
 void __libnx_initheap(void) {
 	void*  addr = nx_inner_heap;
@@ -63,18 +84,40 @@ void __appInit(void) {
 		fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
 	}
 
+	rc = setsysInitialize();
+	if (R_SUCCEEDED(rc)) {
+		SetSysFirmwareVersion fw;
+		rc = setsysGetFirmwareVersion(&fw);
+		if (R_SUCCEEDED(rc)) {
+			hosversionSet(MAKEHOSVERSION(fw.major, fw.minor, fw.micro));
+		}
+		setsysExit();
+	}
+
 #ifdef HAVE_NSVM_SAFE
 	rc = nsvmInitialize();
 	if (R_FAILED(rc)) {
 		fatalSimple(rc);
 	}
 #endif
+
+#ifdef HAVE_NSAM_CONTROL
+	rc = nsInitialize();
+	if (R_FAILED(rc)) {
+		fatalSimple(rc);
+	}
+#endif
+
+	SetFirmwareVersionForLibnx();
 }
 
 void __appExit(void) {
 	smExit();
 #ifdef HAVE_NSVM_SAFE
 	nsvmExit();
+#endif
+#ifdef HAVE_NSAM_CONTROL
+	nsExit();
 #endif
 }
 
@@ -88,14 +131,20 @@ using MitmManager = WaitableManager<MitmManagerOptions>;
 
 int main(int argc, char **argv)
 {
-	consoleDebugInit(debugDevice_SVC);
-	FileUtils::InitializeAsync();
+	Result rc = FileUtils::Initialize();
+	if(R_FAILED(rc)) {
+		fatalSimple(rc);
+	}
 		
 	/* TODO: What's a good timeout value to use here? */
-	auto server_manager = new MitmManager(1);
+	auto server_manager = new WaitableManager(1);
 
 #ifdef HAVE_NSVM_SAFE
 	NsVmMitmService::AddToManager(server_manager);
+#endif
+
+#ifdef HAVE_NSAM_CONTROL
+	NsAm2MitmService::AddToManager(server_manager);
 #endif
 
 	/* Loop forever, servicing our services. */

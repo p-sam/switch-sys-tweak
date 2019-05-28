@@ -21,9 +21,9 @@ TARGET		:=	sys-tweak
 BUILD		:=	build
 OUTDIR		:=	out
 RESOURCES	:=	res
-SOURCES		:=	src
+SOURCES		:=	src lib/inih
 DATA		:=	data
-INCLUDES	:=	src
+INCLUDES	:=	src lib/inih
 EXEFS_SRC	:=	exefs_src
 
 DEFINES	:=	-DDISABLE_IPC -DTARGET="\"$(TARGET)\""
@@ -31,7 +31,7 @@ DEFINES	:=	-DDISABLE_IPC -DTARGET="\"$(TARGET)\""
 #---------------------------------------------------------------------------------
 # options for features
 #---------------------------------------------------------------------------------
-FEATURES := NSVM_SAFE
+FEATURES := NSVM_SAFE NSAM_CONTROL
 TOGGLES := LOGGING
 #---------------------------------------------------------------------------------
 ENABLED_FEATURES := $(foreach feat,$(FEATURES),$(if $(or $(FEAT_$(feat)),$(FEAT_ALL)),$(feat)))
@@ -108,8 +108,7 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 export BUILD_EXEFS_SRC := $(TOPDIR)/$(EXEFS_SRC)
 
-export APP_JSON := $(TOPDIR)/$(RESOURCES)/app.json
-export KIP_JSON := $(TOPDIR)/$(RESOURCES)/kip.json
+export APP_JSON := $(TOPDIR)/$(RESOURCES)/sysmodule.json
 
 .PHONY: $(BUILD) clean all
 
@@ -142,13 +141,9 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 
-all: $(OUTPUT).kip $(OUTPUT).nsp
+all: $(OUTPUT).nsp
 
 $(OUTPUT).nsp: $(OUTPUT).nso $(OUTPUT).npdm
-
-$(OUTPUT).kip: $(OUTPUT).elf $(KIP_JSON)
-	@elf2kip $< $(KIP_JSON) $@
-	@echo built ... $(notdir $@)
 
 $(OUTPUT).elf: $(OFILES)
 

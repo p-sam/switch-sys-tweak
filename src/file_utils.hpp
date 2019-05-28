@@ -13,21 +13,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #pragma once
 #include <switch.h>
-#include <stratosphere.hpp>
+#include <time.h>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <cstdarg>
 
-#ifdef ENABLE_LOGGING
-	#define FILE_LOG(...) FileUtils::Log(__VA_ARGS__)
-#else
-	#define FILE_LOG(...) (void)0
-#endif
+#define FILE_LOG_FILE_PATH "/" TARGET ".txt"
 
 class FileUtils {
 	public:
-		static void _InitializeThreadFunc(void *args);
-		static void InitializeAsync();
+		static void Exit();
+		static Result Initialize();
 		static bool IsInitialized();
-		static void Log(const char *format, ...);
+		static void InitializeAsync();
+		static void LogLine(const char *format, ...);
 };
