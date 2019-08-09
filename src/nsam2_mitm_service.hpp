@@ -19,32 +19,28 @@
 #include <stratosphere.hpp>
 #include "ns_shim.h"
 
-typedef enum {
-	NsAm2Cmd_GetROAppControlDataInterface = 7989
-} NsAm2Cmd;
-
-typedef enum {
-	NsROAppControlDataInterfaceCmd_GetAppControlData = 0,
-	NsROAppControlDataInterfaceCmd_GetAppDesiredLanguage = 1,
-	NsROAppControlDataInterfaceCmd_ConvertAppLanguageToLanguageCode = 2,
-	NsROAppControlDataInterfaceCmd_ConvertLanguageCodeToAppLanguage = 3,
-} NsROAppControlDataInterfaceCmd;
-
 class NsROAppControlDataService : public IServiceObject {
+	private:
+		enum class CommandId : u32 {
+			GetAppControlData = 0,
+			GetAppDesiredLanguage = 1,
+			ConvertAppLanguageToLanguageCode = 2,
+			ConvertLanguageCodeToAppLanguage = 3,
+		};
 	private:
 		u64 title_id;
 		u64 process_id;
 		std::unique_ptr<Service> srv;
 	public:
-		NsROAppControlDataService(u64 tid, u64 pid, Service *s) : title_id(tid), process_id(pid), srv(s) {
+		NsROAppControlDataService(sts::ncm::TitleId tid, u64 pid, Service *s) : title_id(tid), process_id(pid), srv(s) {
 			/* ... */
 		}
 
-		NsROAppControlDataService(u64 tid, u64 pid, std::unique_ptr<Service> s) : title_id(tid), process_id(pid), srv(std::move(s)) {
+		NsROAppControlDataService(sts::ncm::TitleId tid, u64 pid, std::unique_ptr<Service> s) : title_id(tid), process_id(pid), srv(std::move(s)) {
 			/* ... */
 		}
 
-		NsROAppControlDataService(u64 tid, u64 pid, Service s) : title_id(tid), process_id(pid) {
+		NsROAppControlDataService(sts::ncm::TitleId tid, u64 pid, Service s) : title_id(tid), process_id(pid) {
 			srv = std::make_unique<Service>(s);
 		}
 
@@ -58,18 +54,22 @@ class NsROAppControlDataService : public IServiceObject {
 		Result ConvertLanguageCodeToAppLanguage(u64 langcode, Out<u8> langentry);
 	public:
 		DEFINE_SERVICE_DISPATCH_TABLE {
-			MakeServiceCommandMeta<NsROAppControlDataInterfaceCmd_GetAppControlData, &NsROAppControlDataService::GetAppControlData>(),
-			MakeServiceCommandMeta<NsROAppControlDataInterfaceCmd_GetAppDesiredLanguage, &NsROAppControlDataService::GetAppDesiredLanguage>(),
-			MakeServiceCommandMeta<NsROAppControlDataInterfaceCmd_ConvertAppLanguageToLanguageCode, &NsROAppControlDataService::ConvertAppLanguageToLanguageCode>(),
-			MakeServiceCommandMeta<NsROAppControlDataInterfaceCmd_ConvertLanguageCodeToAppLanguage, &NsROAppControlDataService::ConvertLanguageCodeToAppLanguage>(),
+			MAKE_SERVICE_COMMAND_META(NsROAppControlDataService, GetAppControlData),
+			MAKE_SERVICE_COMMAND_META(NsROAppControlDataService, GetAppDesiredLanguage),
+			MAKE_SERVICE_COMMAND_META(NsROAppControlDataService, ConvertAppLanguageToLanguageCode),
+			MAKE_SERVICE_COMMAND_META(NsROAppControlDataService, ConvertLanguageCodeToAppLanguage),
 		};
 };
 
 class NsAm2MitmService : public IMitmServiceObject {
+	private:
+		enum class CommandId : u32 {
+			GetROAppControlDataInterface = 7989,
+		};
 	public:
-		NsAm2MitmService(std::shared_ptr<Service> s, u64 pid) : IMitmServiceObject(s, pid) {}
+		NsAm2MitmService(std::shared_ptr<Service> s, u64 pid, sts::ncm::TitleId tid) : IMitmServiceObject(s, pid, tid) {}
 
-		static bool ShouldMitm(u64 pid, u64 tid);
+		static bool ShouldMitm(u64 pid, sts::ncm::TitleId tid);
 
 		static void PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx);
 
@@ -78,7 +78,7 @@ class NsAm2MitmService : public IMitmServiceObject {
 		Result GetROAppControlDataInterface(Out<std::shared_ptr<NsROAppControlDataService>> out_intf);
 	public:
 		DEFINE_SERVICE_DISPATCH_TABLE {
-			MakeServiceCommandMeta<NsAm2Cmd_GetROAppControlDataInterface, &NsAm2MitmService::GetROAppControlDataInterface>(),
+			MAKE_SERVICE_COMMAND_META(NsAm2MitmService, GetROAppControlDataInterface),
 		};
 		static void AddToManager(SessionManagerBase *manager);
 };

@@ -18,15 +18,15 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 
-enum NsVmCmd : u32 {
-	NsVmCmd_NeedsUpdateVulnerability = 1200,
-};
-
 class NsVmMitmService : public IMitmServiceObject {
 	public:
-		NsVmMitmService(std::shared_ptr<Service> s, u64 pid) : IMitmServiceObject(s, pid) {}
+		enum class CommandId : u32 {
+			NeedsUpdateVulnerability = 1200,
+		};
+	public:
+		NsVmMitmService(std::shared_ptr<Service> s, u64 pid, sts::ncm::TitleId tid) : IMitmServiceObject(s, pid, tid) {}
 
-		static bool ShouldMitm(u64 pid, u64 tid);
+		static bool ShouldMitm(u64 pid, sts::ncm::TitleId tid);
 
 		static void PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx);
 
@@ -35,7 +35,7 @@ class NsVmMitmService : public IMitmServiceObject {
 		Result NeedsUpdateVulnerability(Out<u8> out);
 	public:
 		DEFINE_SERVICE_DISPATCH_TABLE {
-			MakeServiceCommandMeta<NsVmCmd_NeedsUpdateVulnerability, &NsVmMitmService::NeedsUpdateVulnerability>(),
+			MAKE_SERVICE_COMMAND_META(NsVmMitmService, NeedsUpdateVulnerability),
 		};
 		static void AddToManager(SessionManagerBase *manager);
 };

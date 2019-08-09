@@ -22,8 +22,8 @@
 
 void NsVmMitmService::PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx) {}
 
-bool NsVmMitmService::ShouldMitm(u64 pid, u64 tid) {
-	bool should_mitm = (tid == TitleId_AppletWifiWebAuth || tid == TitleId_AppletWeb || tid == TitleId_AppletOfflineWeb);
+bool NsVmMitmService::ShouldMitm(u64 pid, sts::ncm::TitleId tid) {
+	bool should_mitm = (tid == sts::ncm::TitleId::AppletWifiWebAuth || tid == sts::ncm::TitleId::AppletWeb || tid == sts::ncm::TitleId::AppletOfflineWeb);
 	FileUtils::LogLine("\"%s\"<>::ShouldMitm(%ld, 0x%016lx); // %s", NSVM_MITM_SERVICE_NAME, pid, tid, should_mitm ? "true" : "false");
 	return should_mitm;
 }
