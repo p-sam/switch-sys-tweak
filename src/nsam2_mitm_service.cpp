@@ -49,10 +49,11 @@ static void _ProcessControlData(u64 tid, NsAppControlData* data, u64* size) {
 	
 	FILE* f = fopen(path, "rb");
 	if(f != NULL) {
-		size_t read = fread(&data->icon, 1, sizeof(data->icon), f);
-		*size = sizeof(data->nacp) + read;
+		fread(&data->icon[0], sizeof(data->icon), 1, f);
+		*size = sizeof(data->nacp) + ftell(f);
 		fclose(f);
 	}
+	FileUtils::LogLine("\"%s\"<>::_ProcessControlData(%ld); // [%ld|%s]%s", NSAM2_MITM_SERVICE_NAME, tid, *size, f ? "loaded" : "failed", path);
 }
 
 void NsAm2MitmService::PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx) {}
