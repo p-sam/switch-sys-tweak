@@ -6,7 +6,6 @@ A collection of miscellaneous mitms that may eventually grow as stuff gets added
 ## Features
 
 * `FEAT_NSVM_SAFE` : Mitm's `ns:vm`->NeedsUpdateVulnerability to always return 0 (enable using web applets on outdated fws)
-    (Deprecated in favor of setting Atmosphère set:sys overrides, by adding the relevant flag in system_settings.ini)
 * `FEAT_NSAM_CONTROL` : [5.1.0+] Mitm's `ns:am2`->GetReadOnlyApplicationControlDataInterface to override icon/author/version/name by title.
 
 ## Toggles
