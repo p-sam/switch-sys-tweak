@@ -84,14 +84,6 @@ typedef struct {
 	char icon[0x20000];
 } NsAppControlData;
 
-
-/* Command forwarders. */
-Result nsGetROAppControlDataInterfaceFwd(Service* s, u32 cmd_id, Service* out);
-Result nsGetAppControlDataFwd(Service* s, u32 cmd_id, u8 flag, u64 tid, void* buffer, size_t size, size_t* actual_size);
-Result nsGetAppDesiredLanguageFwd(Service* s, u32 cmd_id, u32 bitmask, u8* out_langentry);
-Result nsConvertAppLanguageToLanguageCodeFwd(Service* s, u32 cmd_id, u8 input, u64* out);
-Result nsConvertLanguageCodeToAppLanguageFwd(Service* s, u32 cmd_id, u64 input, u8* out);
-
 #ifdef __cplusplus
 }
 #endif

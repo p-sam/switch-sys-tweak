@@ -17,9 +17,12 @@
 #pragma once
 #include <switch.h>
 #include <stratosphere.hpp>
-#include "ns_shim.h"
 
-class NsROAppControlDataService : public IServiceObject {
+#include "ns.h"
+
+#define NSAM2_MITM_SERVICE_NAME "ns:am2"
+
+class NsROAppControlDataService : public ams::sf::IServiceObject {
 	private:
 		enum class CommandId : u32 {
 			GetAppControlData = 0,
@@ -28,57 +31,51 @@ class NsROAppControlDataService : public IServiceObject {
 			ConvertLanguageCodeToAppLanguage = 3,
 		};
 	private:
-		u64 title_id;
-		u64 process_id;
+		ams::sm::MitmProcessInfo client_info;
 		std::unique_ptr<Service> srv;
 	public:
-		NsROAppControlDataService(sts::ncm::TitleId tid, u64 pid, Service *s) : title_id(tid), process_id(pid), srv(s) {
-			/* ... */
-		}
-
-		NsROAppControlDataService(sts::ncm::TitleId tid, u64 pid, std::unique_ptr<Service> s) : title_id(tid), process_id(pid), srv(std::move(s)) {
-			/* ... */
-		}
-
-		NsROAppControlDataService(sts::ncm::TitleId tid, u64 pid, Service s) : title_id(tid), process_id(pid) {
-			srv = std::make_unique<Service>(s);
-		}
+		NsROAppControlDataService(const ams::sm::MitmProcessInfo &cl, std::unique_ptr<Service> s) : client_info(cl), srv(std::move(s)) {}
 
 		virtual ~NsROAppControlDataService() {
 			serviceClose(srv.get());
 		}
 	private:
-		Result GetAppControlData(u8 flag, u64 tid, OutBuffer<char> buffer, Out<u64> out_count);
-		Result GetAppDesiredLanguage(u32 bitmask, Out<u8> out_langentry);
-		Result ConvertAppLanguageToLanguageCode(u8 langentry, Out<u64> langcode);
-		Result ConvertLanguageCodeToAppLanguage(u64 langcode, Out<u8> langentry);
+		ams::Result GetAppControlData(u8 flag, u64 tid, const ams::sf::OutBuffer &buffer, ams::sf::Out<u64> out_count);
+		ams::Result GetAppDesiredLanguage(u32 bitmask, ams::sf::Out<u8> out_langentry);
+		ams::Result ConvertAppLanguageToLanguageCode(u8 langentry, ams::sf::Out<u64> langcode);
+		ams::Result ConvertLanguageCodeToAppLanguage(u64 langcode, ams::sf::Out<u8> langentry);
 	public:
 		DEFINE_SERVICE_DISPATCH_TABLE {
-			MAKE_SERVICE_COMMAND_META(NsROAppControlDataService, GetAppControlData),
-			MAKE_SERVICE_COMMAND_META(NsROAppControlDataService, GetAppDesiredLanguage),
-			MAKE_SERVICE_COMMAND_META(NsROAppControlDataService, ConvertAppLanguageToLanguageCode),
-			MAKE_SERVICE_COMMAND_META(NsROAppControlDataService, ConvertLanguageCodeToAppLanguage),
+			MAKE_SERVICE_COMMAND_META(GetAppControlData),
+			MAKE_SERVICE_COMMAND_META(GetAppDesiredLanguage),
+			MAKE_SERVICE_COMMAND_META(ConvertAppLanguageToLanguageCode),
+			MAKE_SERVICE_COMMAND_META(ConvertLanguageCodeToAppLanguage),
 		};
 };
 
-class NsAm2MitmService : public IMitmServiceObject {
+class NsAm2MitmService : public ams::sf::IMitmServiceObject {
 	private:
 		enum class CommandId : u32 {
 			GetROAppControlDataInterface = 7989,
 		};
 	public:
-		NsAm2MitmService(std::shared_ptr<Service> s, u64 pid, sts::ncm::TitleId tid) : IMitmServiceObject(s, pid, tid) {}
+		NsAm2MitmService(std::shared_ptr<Service> &&s, const ams::sm::MitmProcessInfo &c) : ams::sf::IMitmServiceObject(std::forward<std::shared_ptr<Service>>(s), c) {}
 
-		static bool ShouldMitm(u64 pid, sts::ncm::TitleId tid);
-
-		static void PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx);
+		static bool ShouldMitm(const ams::sm::MitmProcessInfo &client_info);
 
 	protected:
 		/* Overridden commands. */
-		Result GetROAppControlDataInterface(Out<std::shared_ptr<NsROAppControlDataService>> out_intf);
+		ams::Result GetROAppControlDataInterface(ams::sf::Out<std::shared_ptr<NsROAppControlDataService>> out);
 	public:
 		DEFINE_SERVICE_DISPATCH_TABLE {
-			MAKE_SERVICE_COMMAND_META(NsAm2MitmService, GetROAppControlDataInterface),
+			MAKE_SERVICE_COMMAND_META(GetROAppControlDataInterface),
 		};
-		static void AddToManager(SessionManagerBase *manager);
+
+		static constexpr ams::sm::ServiceName GetServiceName() {
+			return ams::sm::ServiceName::Encode(NSAM2_MITM_SERVICE_NAME);
+		}
+
+		static constexpr size_t GetMaxSessions() {
+			return 4;
+		}
 };

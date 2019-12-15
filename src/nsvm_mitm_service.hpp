@@ -18,24 +18,31 @@
 #include <switch.h>
 #include <stratosphere.hpp>
 
-class NsVmMitmService : public IMitmServiceObject {
+#define NSVM_MITM_SERVICE_NAME "ns:vm"
+
+class NsVmMitmService : public ams::sf::IMitmServiceObject {
 	public:
 		enum class CommandId : u32 {
 			NeedsUpdateVulnerability = 1200,
 		};
 	public:
-		NsVmMitmService(std::shared_ptr<Service> s, u64 pid, sts::ncm::TitleId tid) : IMitmServiceObject(s, pid, tid) {}
+		NsVmMitmService(std::shared_ptr<Service> &&s, const ams::sm::MitmProcessInfo &c) : ams::sf::IMitmServiceObject(std::forward<std::shared_ptr<Service>>(s), c) {}
 
-		static bool ShouldMitm(u64 pid, sts::ncm::TitleId tid);
-
-		static void PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx);
+		static bool ShouldMitm(const ams::sm::MitmProcessInfo &client_info);
 
 	protected:
 		/* Overridden commands. */
-		Result NeedsUpdateVulnerability(Out<u8> out);
+		ams::Result NeedsUpdateVulnerability(ams::sf::Out<u8> out);
 	public:
 		DEFINE_SERVICE_DISPATCH_TABLE {
-			MAKE_SERVICE_COMMAND_META(NsVmMitmService, NeedsUpdateVulnerability),
+			MAKE_SERVICE_COMMAND_META(NeedsUpdateVulnerability),
 		};
-		static void AddToManager(SessionManagerBase *manager);
+
+		static constexpr ams::sm::ServiceName GetServiceName() {
+			return ams::sm::ServiceName::Encode(NSVM_MITM_SERVICE_NAME);
+		}
+
+		static constexpr size_t GetMaxSessions() {
+			return 16;
+		}
 };

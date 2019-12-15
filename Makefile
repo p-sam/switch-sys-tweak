@@ -26,7 +26,7 @@ DATA		:=	data
 INCLUDES	:=	src lib/inih
 EXEFS_SRC	:=	exefs_src
 
-DEFINES	:=	-DDISABLE_IPC -DTARGET="\"$(TARGET)\""
+DEFINES	:=	-DDISABLE_IPC -DTARGET="\"$(TARGET)\"" -DATMOSPHERE_BOARD_NINTENDO_SWITCH -DATMOSPHERE_IS_STRATOSPHERE
 
 #---------------------------------------------------------------------------------
 # options for features
@@ -59,9 +59,8 @@ LIBS	:= -lstratosphere -lnx
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBSTRATOSPHERE := $(CURDIR)/lib/libstratosphere
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(LIBSTRATOSPHERE)
-
+LIBAMS := $(CURDIR)/lib/ams
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(LIBAMS)/libstratosphere $(LIBAMS)/libvapours
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -119,14 +118,14 @@ $(BUILD):
 	@[ -n "$(ENABLED_FEATURES)" ] || (echo "Please enable at least one feature with FEAT_X env vars, where X can be (ALL $(FEATURES))" 1>&2; exit 1)
 	@echo "* ENABLED_FEATURES: $(ENABLED_FEATURES)"
 	@echo "* ENABLED_TOGGLES: $(ENABLED_TOGGLES)"
-	@$(MAKE) -C $(LIBSTRATOSPHERE)
+	@$(MAKE) -C $(LIBAMS)
 	@[ -d $@ ] || mkdir -p $@
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
-	@$(MAKE) -C $(LIBSTRATOSPHERE) clean
+	#@$(MAKE) -C $(LIBAMS) clean
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET).kip $(TARGET).nsp $(TARGET).npdm $(TARGET).nso $(TARGET).elf $(OUTDIR)
 

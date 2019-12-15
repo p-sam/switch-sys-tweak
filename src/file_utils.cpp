@@ -15,6 +15,7 @@
  */
 
 #include "file_utils.hpp"
+#include <stratosphere.hpp>
 
 static Mutex g_log_mutex;
 static std::atomic_bool g_has_initialized = false;
@@ -56,7 +57,7 @@ void FileUtils::LogLine(const char *format, ...) {
 
 void FileUtils::InitializeAsync() {
 	Thread initThread = {0};
-	threadCreate(&initThread, _FileUtils_InitializeThreadFunc, NULL, 0x4000, 0x15, 0);
+	threadCreate(&initThread, _FileUtils_InitializeThreadFunc, NULL, NULL, 0x4000, 0x15, 0);
 	threadStart(&initThread);
 }
 

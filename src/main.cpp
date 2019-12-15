@@ -35,33 +35,33 @@ extern "C" {
 	extern u32 __start__;
 
 	u32 __nx_applet_type = AppletType_None;
+	u32 __nx_fs_num_sessions = 1;
+	u32 __nx_fsdev_direntry_cache_size = 1;
 
 	#define INNER_HEAP_SIZE 0x20000
 	size_t nx_inner_heap_size = INNER_HEAP_SIZE;
 	char   nx_inner_heap[INNER_HEAP_SIZE];
-	
+
 	void __libnx_initheap(void);
 	void __appInit(void);
 	void __appExit(void);
 
 	/* Exception handling. */
-	alignas(16) u8 __nx_exception_stack[0x1000];
+	alignas(16) u8 __nx_exception_stack[ams::os::MemoryPageSize];
 	u64 __nx_exception_stack_size = sizeof(__nx_exception_stack);
 	void __libnx_exception_handler(ThreadExceptionDump *ctx);
-	u64 __stratosphere_title_id = 0x00FF747765616BFFUL;
-	void __libstratosphere_exception_handler(AtmosphereFatalErrorContext *ctx);
+}
+
+namespace ams {
+	ams::ncm::ProgramId CurrentProgramId = {0x00FF747765616BFFul};
+
+	namespace result {
+		bool CallFatalOnResultAssertion = true;
+	}
 }
 
 void __libnx_exception_handler(ThreadExceptionDump *ctx) {
-	StratosphereCrashHandler(ctx);
-}
-
-void __libstratosphere_exception_handler(AtmosphereFatalErrorContext *ctx) {
-	Result rc = bpcAmsInitialize();
-	if(R_SUCCEEDED(rc)) {
-		bpcAmsRebootToFatalError(ctx);
-		bpcAmsExit();
-	}
+	ams::CrashHandler(ctx);
 }
 
 void __libnx_initheap(void) {
@@ -77,80 +77,65 @@ void __libnx_initheap(void) {
 }
 
 void __appInit(void) {
-	Result rc;
-	
-	rc = smInitialize();
-	if (R_FAILED(rc)) {
-		fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
-	}
-
-	rc = setsysInitialize();
-	if (R_SUCCEEDED(rc)) {
-		SetSysFirmwareVersion fw;
-		rc = setsysGetFirmwareVersion(&fw);
-		if (R_SUCCEEDED(rc)) {
-			hosversionSet(MAKEHOSVERSION(fw.major, fw.minor, fw.micro));
-		}
-		setsysExit();
-	}
+	ams::hos::SetVersionForLibnx();
+	R_ASSERT(smInitialize());
 
 #ifdef HAVE_NSVM_SAFE
-	rc = nsvmInitialize();
-	if (R_FAILED(rc)) {
-		fatalSimple(rc);
-	}
+	R_ASSERT(nsvmInitialize());
 #endif
-
 #ifdef HAVE_NSAM_CONTROL
-	rc = nsInitialize();
-	if (R_FAILED(rc)) {
-		fatalSimple(rc);
-	}
+	R_ASSERT(nsInitialize());
 #endif
 
-	SetFirmwareVersionForLibnx();
+	ams::CheckApiVersion();
 }
 
 void __appExit(void) {
-	smExit();
 #ifdef HAVE_NSVM_SAFE
 	nsvmExit();
 #endif
 #ifdef HAVE_NSAM_CONTROL
 	nsExit();
 #endif
+	smExit();
 }
 
-struct MitmManagerOptions {
-	static const size_t PointerBufferSize = 0x100;
-	static const size_t MaxDomains = 4;
-	static const size_t MaxDomainObjects = 0x100;
-};
+constexpr size_t NumServers = 0
+#ifdef HAVE_NSVM_SAFE
+	+ 1
+#endif
+#ifdef HAVE_NSAM_CONTROL
+	+ 1
+#endif
+;
 
-using MitmManager = WaitableManager<MitmManagerOptions>;
+static_assert(NumServers > 0, "At least one feature should be enabled.");
+
+constexpr size_t MaxSessions = 1
+#ifdef HAVE_NSVM_SAFE
+	+ NsVmMitmService::GetMaxSessions()
+#endif
+#ifdef HAVE_NSAM_CONTROL
+	+ NsAm2MitmService::GetMaxSessions()
+#endif
+;
+
+using MitmManager = ams::sf::hipc::ServerManager<NumServers, ams::sf::hipc::DefaultServerManagerOptions, MaxSessions>;
 
 int main(int argc, char **argv)
 {
-	Result rc = FileUtils::Initialize();
-	if(R_FAILED(rc)) {
-		fatalSimple(rc);
-	}
-		
-	/* TODO: What's a good timeout value to use here? */
-	auto server_manager = new WaitableManager(1);
+	MitmManager serverManager;
+
+	R_ASSERT(FileUtils::Initialize());
 
 #ifdef HAVE_NSVM_SAFE
-	NsVmMitmService::AddToManager(server_manager);
+	R_ASSERT((serverManager.RegisterMitmServer<NsVmMitmService>(NsVmMitmService::GetServiceName())));
 #endif
-
 #ifdef HAVE_NSAM_CONTROL
-	NsAm2MitmService::AddToManager(server_manager);
+	R_ASSERT((serverManager.RegisterMitmServer<NsAm2MitmService>(NsAm2MitmService::GetServiceName())));
 #endif
 
-	/* Loop forever, servicing our services. */
-	server_manager->Process();
-	
-	delete server_manager;
+	serverManager.LoopProcess();
 
 	return 0;
 }

@@ -19,8 +19,6 @@
 #include "file_utils.hpp"
 #include "ini.h"
 
-#define NSAM2_MITM_SERVICE_NAME "ns:am2"
-
 static int _ProcessControlDataIniHandler(void *user, const char *section, const char *name, const char *value) {
 	NsAppControlData* data = (NsAppControlData*)user;
 
@@ -43,9 +41,9 @@ static int _ProcessControlDataIniHandler(void *user, const char *section, const 
 
 static void _ProcessControlData(u64 tid, NsAppControlData* data, u64* size) {
 	char path[FS_MAX_PATH] = {0};
-	snprintf(path, sizeof(path)-1, "/atmosphere/titles/%016lx/config.ini", tid);
+	snprintf(path, sizeof(path)-1, "/atmosphere/contents/%016lx/config.ini", tid);
 	ini_parse(path, _ProcessControlDataIniHandler, data);
-	snprintf(path, sizeof(path)-1, "/atmosphere/titles/%016lx/icon.jpg", tid);
+	snprintf(path, sizeof(path)-1, "/atmosphere/contents/%016lx/icon.jpg", tid);
 	
 	FILE* f = fopen(path, "rb");
 	if(f != NULL) {
@@ -56,69 +54,61 @@ static void _ProcessControlData(u64 tid, NsAppControlData* data, u64* size) {
 	FileUtils::LogLine("\"%s\"<>::_ProcessControlData(%ld); // [%ld|%s]%s", NSAM2_MITM_SERVICE_NAME, tid, *size, f ? "loaded" : "failed", path);
 }
 
-void NsAm2MitmService::PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx) {}
-
-bool NsAm2MitmService::ShouldMitm(u64 pid, sts::ncm::TitleId tid) {
-	bool should_mitm = (tid == sts::ncm::TitleId::AppletQlaunch);
-	FileUtils::LogLine("\"%s\"<>::ShouldMitm(%ld, 0x%016lx); // %s", NSAM2_MITM_SERVICE_NAME, pid, tid, should_mitm ? "true" : "false");
+bool NsAm2MitmService::ShouldMitm(const ams::sm::MitmProcessInfo &client_info) {
+	bool should_mitm = (client_info.program_id == ams::ncm::ProgramId::AppletQlaunch);
+	FileUtils::LogLine("\"%s\"<>::ShouldMitm(%ld, 0x%016lx); // %s", NSAM2_MITM_SERVICE_NAME, client_info.process_id, client_info.program_id, should_mitm ? "true" : "false");
 	return should_mitm;
 }
 
-Result NsAm2MitmService::GetROAppControlDataInterface(Out<std::shared_ptr<NsROAppControlDataService>> out_intf) {
-	std::shared_ptr<NsROAppControlDataService> intf = nullptr;
-	u32 out_domain_id = 0;
-	Result rc = ResultSuccess;
-
-	ON_SCOPE_EXIT {
-		if (R_SUCCEEDED(rc)) {
-			out_intf.SetValue(std::move(intf));
-			if (out_intf.IsDomain()) {
-				out_intf.ChangeObjectId(out_domain_id);
-			}
-		}
-	};
-
+ams::Result NsAm2MitmService::GetROAppControlDataInterface(ams::sf::Out<std::shared_ptr<NsROAppControlDataService>> out) {
 	Service s;
-	rc = nsGetROAppControlDataInterfaceFwd(this->forward_service.get(), (u32)CommandId::GetROAppControlDataInterface, &s);
-	if (R_SUCCEEDED(rc)) {
-		intf = std::make_shared<NsROAppControlDataService>(this->title_id, this->process_id, s);
-		if (out_intf.IsDomain()) {
-			out_domain_id = s.object_id;
-		}
+	Result rc = serviceDispatch(this->forward_service.get(), (u32)CommandId::GetROAppControlDataInterface,
+		.out_num_objects = 1,
+		.out_objects = &s,
+	);
+
+	if(R_SUCCEEDED(rc)) {
+		const ams::sf::cmif::DomainObjectId target_object_id{serviceGetObjectId(&s)};
+		out.SetValue(std::make_shared<NsROAppControlDataService>(this->client_info, std::make_unique<Service>(s)), target_object_id);
 	}
 
-	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::GetROAppControlDataInterface(); // %x", NSAM2_MITM_SERVICE_NAME, process_id, title_id, rc);
+	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::GetROAppControlDataInterface(); // %x", NSAM2_MITM_SERVICE_NAME, this->client_info.process_id, this->client_info.program_id, rc);
 	return rc;
 }
 
-void NsAm2MitmService::AddToManager(SessionManagerBase *manager) {
-	AddMitmServerToManager<NsAm2MitmService>(manager, NSAM2_MITM_SERVICE_NAME, 16);
-}
+ams::Result NsROAppControlDataService::GetAppControlData(u8 flag, u64 tid, const ams::sf::OutBuffer &buffer, ams::sf::Out<u64> out_size) {
+	const struct {
+		u8 flag;
+		u64 tid;
+	} in = {flag, tid};
 
-Result NsROAppControlDataService::GetAppControlData(u8 flag, u64 tid, OutBuffer<char> buffer, Out<u64> out_size) {
-	Result rc = nsGetAppControlDataFwd(this->srv.get(), (u32)CommandId::GetAppControlData, flag, tid, buffer.buffer, buffer.num_elements, out_size.GetPointer());
-	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::GetAppControlData(%u, 0x%016lx, buf[0x%lx]); // %x[0x%lx]", NSAM2_MITM_SERVICE_NAME, process_id, title_id, flag, tid, buffer.num_elements, rc, out_size.GetValue());
+	Result rc = serviceDispatchInOut(this->srv.get(), (u32)CommandId::GetAppControlData, in, *out_size.GetPointer(),
+		.buffer_attrs = {SfBufferAttr_HipcMapAlias | SfBufferAttr_Out},
+		.buffers = {{buffer.GetPointer(), buffer.GetSize()}},
+	);
 
-	if(R_SUCCEEDED(rc) && buffer.num_elements == sizeof(NsAppControlData)) {
-		_ProcessControlData(tid, (NsAppControlData*)buffer.buffer, out_size.GetPointer());
+	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::GetAppControlData(%u, 0x%016lx, buf[0x%lx]); // %x[0x%lx]", NSAM2_MITM_SERVICE_NAME, this->client_info.process_id, this->client_info.program_id, flag, tid, buffer.GetSize(), rc, out_size.GetValue());
+
+	if(R_SUCCEEDED(rc) && buffer.GetSize() == sizeof(NsAppControlData)) {
+		_ProcessControlData(tid, (NsAppControlData*)buffer.GetPointer(), out_size.GetPointer());
 	}
 	return rc;
 }
 
-Result NsROAppControlDataService::GetAppDesiredLanguage(u32 bitmask, Out<u8> out_langentry) {
-	Result rc = nsGetAppDesiredLanguageFwd(this->srv.get(), (u32)CommandId::GetAppDesiredLanguage, bitmask, out_langentry.GetPointer());
-	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::GetAppDesiredLanguage(0x%08x); // %x[%u]", NSAM2_MITM_SERVICE_NAME, process_id, title_id, bitmask, rc, out_langentry.GetValue());
+ams::Result NsROAppControlDataService::GetAppDesiredLanguage(u32 bitmask, ams::sf::Out<u8> out_langentry) {
+	Result rc = serviceDispatchInOut(this->srv.get(), (u32)CommandId::GetAppDesiredLanguage, bitmask, *out_langentry.GetPointer());
+	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::GetAppDesiredLanguage(0x%08x); // %x[%u]", NSAM2_MITM_SERVICE_NAME, this->client_info.process_id, this->client_info.program_id, bitmask, rc, out_langentry.GetValue());
 	return rc;
 }
 
-Result NsROAppControlDataService::ConvertAppLanguageToLanguageCode(u8 langentry, Out<u64> out_langcode) {
-	Result rc = nsConvertAppLanguageToLanguageCodeFwd(this->srv.get(), (u32)CommandId::ConvertAppLanguageToLanguageCode, langentry, out_langcode.GetPointer());
-	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::ConvertAppLanguageToLanguageCode(0x%02x); // %x[%u]", NSAM2_MITM_SERVICE_NAME, process_id, title_id, langentry, rc, out_langcode.GetValue());
+ams::Result NsROAppControlDataService::ConvertAppLanguageToLanguageCode(u8 langentry, ams::sf::Out<u64> out_langcode) {
+	Result rc = serviceDispatchInOut(this->srv.get(), (u32)CommandId::ConvertAppLanguageToLanguageCode, langentry, *out_langcode.GetPointer());
+	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::ConvertAppLanguageToLanguageCode(0x%02x); // %x[%u]", NSAM2_MITM_SERVICE_NAME, this->client_info.process_id, this->client_info.program_id, langentry, rc, out_langcode.GetValue());
 	return rc;
 }
 
-Result NsROAppControlDataService::ConvertLanguageCodeToAppLanguage(u64 langcode, Out<u8> out_langentry) {
-	Result rc = nsConvertLanguageCodeToAppLanguageFwd(this->srv.get(), (u32)CommandId::ConvertLanguageCodeToAppLanguage, langcode, out_langentry.GetPointer());
-	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::ConvertLanguageCodeToAppLanguage(0x%016lx); // %x[0x%02x]", NSAM2_MITM_SERVICE_NAME, process_id, title_id, langcode, rc, out_langentry.GetValue());
+ams::Result NsROAppControlDataService::ConvertLanguageCodeToAppLanguage(u64 langcode, ams::sf::Out<u8> out_langentry) {
+	Result rc = serviceDispatchInOut(this->srv.get(), (u32)CommandId::ConvertLanguageCodeToAppLanguage, langcode, *out_langentry.GetPointer());
+	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::ConvertLanguageCodeToAppLanguage(0x%016lx); // %x[0x%02x]", NSAM2_MITM_SERVICE_NAME, this->client_info.process_id, this->client_info.program_id, langcode, rc, out_langentry.GetValue());
 	return rc;
 }

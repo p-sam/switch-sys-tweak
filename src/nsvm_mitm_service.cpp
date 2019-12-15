@@ -18,23 +18,19 @@
 #include "nsvm_mitm_service.hpp"
 #include "file_utils.hpp"
 
-#define NSVM_MITM_SERVICE_NAME "ns:vm"
+bool NsVmMitmService::ShouldMitm(const ams::sm::MitmProcessInfo &client_info) {
+	bool should_mitm = (
+		client_info.program_id == ams::ncm::ProgramId::AppletWifiWebAuth ||
+		client_info.program_id == ams::ncm::ProgramId::AppletWeb ||
+		client_info.program_id == ams::ncm::ProgramId::AppletOfflineWeb
+	);
 
-void NsVmMitmService::PostProcess(IMitmServiceObject *obj, IpcResponseContext *ctx) {}
-
-bool NsVmMitmService::ShouldMitm(u64 pid, sts::ncm::TitleId tid) {
-	bool should_mitm = (tid == sts::ncm::TitleId::AppletWifiWebAuth || tid == sts::ncm::TitleId::AppletWeb || tid == sts::ncm::TitleId::AppletOfflineWeb);
-	FileUtils::LogLine("\"%s\"<>::ShouldMitm(%ld, 0x%016lx); // %s", NSVM_MITM_SERVICE_NAME, pid, tid, should_mitm ? "true" : "false");
+	FileUtils::LogLine("\"%s\"<>::ShouldMitm(%ld, 0x%016lx); // %s", NSVM_MITM_SERVICE_NAME, client_info.process_id, client_info.program_id, should_mitm ? "true" : "false");
 	return should_mitm;
 }
 
-Result NsVmMitmService::NeedsUpdateVulnerability(Out<u8> out) {
-	Result rc = 0;
+ams::Result NsVmMitmService::NeedsUpdateVulnerability(ams::sf::Out<u8> out) {
 	out.SetValue(0);
-	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::NeedsUpdateVulnerability(); // %x[%x]", NSVM_MITM_SERVICE_NAME, process_id, title_id, out.GetValue(), rc);
-	return rc;
-}
-
-void NsVmMitmService::AddToManager(SessionManagerBase *manager) {
-	AddMitmServerToManager<NsVmMitmService>(manager, NSVM_MITM_SERVICE_NAME, 4);
+	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::NeedsUpdateVulnerability(); // %x", NSVM_MITM_SERVICE_NAME, this->client_info.process_id, this->client_info.program_id, out.GetValue());
+	return ams::ResultSuccess();
 }
