@@ -33,6 +33,8 @@ static int _ProcessControlDataIniHandler(void *user, const char *section, const 
 			}
 		} else if (strcasecmp(name, "display_version") == 0) {
 			strncpy(data->nacp.display_version, value, sizeof(data->nacp.display_version)-1);
+		} else if (strcasecmp(name, "startup_user_account") == 0) {
+			data->nacp.startup_user_account = (*value == 't' || *value == '1');
 		}
 	}
 
