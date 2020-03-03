@@ -16,7 +16,7 @@
  
 #pragma once
 #include <switch.h>
-#include <stratosphere.hpp>
+#include "ams.hpp"
 
 #define NSVM_MITM_SERVICE_NAME "ns:vm"
 

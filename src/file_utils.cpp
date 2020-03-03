@@ -15,7 +15,7 @@
  */
 
 #include "file_utils.hpp"
-#include <stratosphere.hpp>
+#include "ams.hpp"
 
 static Mutex g_log_mutex;
 static std::atomic_bool g_has_initialized = false;

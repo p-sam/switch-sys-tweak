@@ -20,7 +20,7 @@
 #include <malloc.h>
 
 #include <switch.h>
-#include <stratosphere.hpp>
+#include "ams.hpp"
 
 #ifdef HAVE_NSVM_SAFE
 #include "nsvm_mitm_service.hpp"
