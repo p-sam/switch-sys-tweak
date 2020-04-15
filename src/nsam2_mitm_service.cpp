@@ -57,7 +57,7 @@ static void _ProcessControlData(u64 tid, NsAppControlData* data, u64* size) {
 }
 
 bool NsAm2MitmService::ShouldMitm(const ams::sm::MitmProcessInfo &client_info) {
-	bool should_mitm = (client_info.program_id == ams::ncm::ProgramId::AppletQlaunch);
+	bool should_mitm = (client_info.program_id == ams::ncm::SystemAppletId::Qlaunch);
 	FileUtils::LogLine("\"%s\"<>::ShouldMitm(%ld, 0x%016lx); // %s", NSAM2_MITM_SERVICE_NAME, client_info.process_id, client_info.program_id, should_mitm ? "true" : "false");
 	return should_mitm;
 }

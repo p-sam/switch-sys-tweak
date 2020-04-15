@@ -20,9 +20,9 @@
 
 bool NsVmMitmService::ShouldMitm(const ams::sm::MitmProcessInfo &client_info) {
 	bool should_mitm = (
-		client_info.program_id == ams::ncm::ProgramId::AppletWifiWebAuth ||
-		client_info.program_id == ams::ncm::ProgramId::AppletWeb ||
-		client_info.program_id == ams::ncm::ProgramId::AppletOfflineWeb
+		client_info.program_id == ams::ncm::SystemAppletId::WifiWebAuth ||
+		client_info.program_id == ams::ncm::SystemAppletId::Web ||
+		client_info.program_id == ams::ncm::SystemAppletId::OfflineWeb
 	);
 
 	FileUtils::LogLine("\"%s\"<>::ShouldMitm(%ld, 0x%016lx); // %s", NSVM_MITM_SERVICE_NAME, client_info.process_id, client_info.program_id, should_mitm ? "true" : "false");

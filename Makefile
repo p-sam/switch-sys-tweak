@@ -118,7 +118,7 @@ $(BUILD):
 	@[ -n "$(ENABLED_FEATURES)" ] || (echo "Please enable at least one feature with FEAT_X env vars, where X can be (ALL $(FEATURES))" 1>&2; exit 1)
 	@echo "* ENABLED_FEATURES: $(ENABLED_FEATURES)"
 	@echo "* ENABLED_TOGGLES: $(ENABLED_TOGGLES)"
-	@$(MAKE) -C $(LIBAMS)
+	@$(MAKE) -C $(LIBAMS)/libstratosphere
 	@[ -d $@ ] || mkdir -p $@
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
