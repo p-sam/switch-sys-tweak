@@ -66,11 +66,14 @@ Result FileUtils::Initialize() {
 
 	mutexInit(&g_log_mutex);
 
+#if ENABLE_LOGGING
 	if (R_SUCCEEDED(rc)) {
 		rc = timeInitialize();
 	}
 
 	__libnx_init_time();
+	timeExit();
+#endif
 
 	if (R_SUCCEEDED(rc)) {
 		rc = fsInitialize();
