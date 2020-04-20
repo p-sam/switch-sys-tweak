@@ -14,9 +14,4 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define ATMOSPHERE_ARCH_ARM64
-#define ATMOSPHERE_CPU_ARM_CORTEX_A57
-#define ATMOSPHERE_BOARD_NINTENDO_NX
-#define ATMOSPHERE_OS_HORIZON
-
 #include <stratosphere.hpp>
