@@ -15,7 +15,7 @@
  */
 
 #pragma once
-#include <switch.h>
+#include <stratosphere.hpp>
 #include <time.h>
 #include <vector>
 #include <string>

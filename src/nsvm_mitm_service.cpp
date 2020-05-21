@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <switch.h>
 #include "nsvm_mitm_service.hpp"
 #include "file_utils.hpp"
 

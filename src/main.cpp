@@ -14,13 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
+#include <stratosphere.hpp>
+
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
 #include <malloc.h>
-
-#include <switch.h>
-#include "ams.hpp"
 
 #ifdef HAVE_NSVM_SAFE
 #include "nsvm_mitm_service.hpp"
@@ -36,7 +35,6 @@ extern "C" {
 
 	u32 __nx_applet_type = AppletType_None;
 	u32 __nx_fs_num_sessions = 1;
-	u32 __nx_fsdev_direntry_cache_size = 1;
 
 	#define INNER_HEAP_SIZE 0x20000
 	size_t nx_inner_heap_size = INNER_HEAP_SIZE;
@@ -77,7 +75,7 @@ void __libnx_initheap(void) {
 }
 
 void __appInit(void) {
-	ams::hos::SetVersionForLibnx();
+	ams::hos::InitializeForStratosphere();
 	R_ASSERT(smInitialize());
 
 #ifdef HAVE_NSVM_SAFE

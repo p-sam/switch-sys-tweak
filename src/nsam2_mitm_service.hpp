@@ -15,8 +15,7 @@
  */
  
 #pragma once
-#include <switch.h>
-#include "ams.hpp"
+#include <stratosphere.hpp>
 
 #include "ns.h"
 
