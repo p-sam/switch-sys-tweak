@@ -23,7 +23,7 @@ DEFINES		+=	-DTARGET="\"$(TARGET)\""
 #---------------------------------------------------------------------------------
 # options for features
 #---------------------------------------------------------------------------------
-FEATURES := NSVM_SAFE NSAM_CONTROL
+FEATURES := NSVM_SAFE NSAM_CONTROL VCON
 TOGGLES := LOGGING
 #---------------------------------------------------------------------------------
 ENABLED_FEATURES := $(foreach feat,$(FEATURES),$(if $(or $(FEAT_$(feat)),$(FEAT_ALL)),$(feat)))
@@ -38,7 +38,7 @@ DEFINES += $(foreach toggle,$(ENABLED_TOGGLES),-DENABLE_$(toggle))
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(OUTDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \

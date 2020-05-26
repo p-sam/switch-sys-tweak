@@ -7,6 +7,7 @@ A collection of miscellaneous mitms that may eventually grow as stuff gets added
 
 * `FEAT_NSVM_SAFE` : Mitm's `ns:vm`->NeedsUpdateVulnerability to always return 0 (enable using web applets on outdated fws)
 * `FEAT_NSAM_CONTROL` : [5.1.0+] Mitm's `ns:am2`->GetReadOnlyApplicationControlDataInterface to override icon/author/version/name by title.
+* `FEAT_VCON` : [7.0.0+] Registers virtual controllers that stream inputs from a Nintendo 3DS with [3dsnxcontroller](https://github.com/p-sam/3dsnxcontroller)
 
 ## Toggles
 

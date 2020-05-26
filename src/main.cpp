@@ -27,6 +27,9 @@
 #ifdef HAVE_NSAM_CONTROL
 #include "nsam2_mitm_service.hpp"
 #endif
+#ifdef HAVE_VCON
+#include "virtual_controller_service.hpp"
+#endif
 
 #include "file_utils.hpp"
 
@@ -79,10 +82,10 @@ void __appInit(void) {
 	R_ASSERT(smInitialize());
 
 #ifdef HAVE_NSVM_SAFE
-	R_ASSERT(nsvmInitialize());
+	R_ABORT_UNLESS(nsvmInitialize());
 #endif
 #ifdef HAVE_NSAM_CONTROL
-	R_ASSERT(nsInitialize());
+	R_ABORT_UNLESS(nsInitialize());
 #endif
 
 	ams::CheckApiVersion();
@@ -124,17 +127,27 @@ int main(int argc, char **argv)
 {
 	MitmManager serverManager;
 
-	R_ASSERT(FileUtils::Initialize());
+	R_ABORT_UNLESS(FileUtils::Initialize());
 
 #ifdef HAVE_NSVM_SAFE
-	R_ASSERT((serverManager.RegisterMitmServer<NsVmMitmService>(NsVmMitmService::GetServiceName())));
+	FileUtils::LogLine("Registering NsVmMitmService");
+	R_ABORT_UNLESS((serverManager.RegisterMitmServer<NsVmMitmService>(NsVmMitmService::GetServiceName())));
 #endif
 #ifdef HAVE_NSAM_CONTROL
-	R_ASSERT((serverManager.RegisterMitmServer<NsAm2MitmService>(NsAm2MitmService::GetServiceName())));
+	FileUtils::LogLine("Registering NsAm2MitmService");
+	R_ABORT_UNLESS((serverManager.RegisterMitmServer<NsAm2MitmService>(NsAm2MitmService::GetServiceName())));
 #endif
 
+#ifdef HAVE_VCON
+	VirtualControllerService vconService;
+	FileUtils::LogLine("Starting VirtualControllerService");
+	vconService.Start();
+#endif
+
+	FileUtils::LogLine("serverManager.LoopProcess();");
 	serverManager.LoopProcess();
 
+	vconService.Stop();
 	return 0;
 }
 
