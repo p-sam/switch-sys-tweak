@@ -147,7 +147,10 @@ int main(int argc, char **argv)
 	FileUtils::LogLine("serverManager.LoopProcess();");
 	serverManager.LoopProcess();
 
+#ifdef HAVE_VCON
 	vconService.Stop();
+#endif
+
 	return 0;
 }
 
