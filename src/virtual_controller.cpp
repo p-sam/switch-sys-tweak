@@ -4,7 +4,7 @@
 Result VirtualController::Initialize() { 
 	Result rc = hiddbgInitialize();
 	if(R_SUCCEEDED(rc)) {
-		rc = hiddbgAttachHdlsWorkBuffer();
+		hiddbgAttachHdlsWorkBuffer();
 	}
 	return rc;
 }

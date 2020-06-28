@@ -15,12 +15,12 @@
 static const SocketInitConfig g_socketInitConfig = {
 	.bsdsockets_version = 1,
 
+	//We don't use TCP, set all TCP buffers to 0
 	.tcp_tx_buf_size = 0,
 	.tcp_rx_buf_size = 0,
 	.tcp_tx_buf_max_size = 0,
 	.tcp_rx_buf_max_size = 0,
 
-	//We don't use UDP, set all UDP buffers to 0
 	.udp_tx_buf_size = 0x100,
 	.udp_rx_buf_size = 0x10000,
 
@@ -96,14 +96,14 @@ bool VirtualControllerService::ReceiveMessages() {
 	if(it != this->controllers.end()) {
 		controller = it->second;
 	} else {
-		FileUtils::LogLine("%s: new controller #0x%x", __func__, clientAddr.sin_addr.s_addr);
+		FileUtils::LogLine("%s: new controller #0x%x", __PRETTY_FUNCTION__, clientAddr.sin_addr.s_addr);
 		controller = new VirtualController();
 		R_ABORT_UNLESS(controller->Connect());
 		this->controllers[clientAddr.sin_addr.s_addr] = controller;
 	}
 
 	if(packet.keysHeld & CONTROLLER_PACKET_KEY_EXIT) {
-		FileUtils::LogLine("%s: controller #0x%x exited", __func__, clientAddr.sin_addr.s_addr);
+		FileUtils::LogLine("%s: controller #0x%x exited", __PRETTY_FUNCTION__, clientAddr.sin_addr.s_addr);
 		delete controller;
 		this->controllers.erase(clientAddr.sin_addr.s_addr);
 		return true;
@@ -112,7 +112,7 @@ bool VirtualControllerService::ReceiveMessages() {
 	controller->SetState(&packet);
 	Result rc = controller->FlushState();
 	if(R_FAILED(rc)) {
-		FileUtils::LogLine("%s: controller #0x%x flushState method failed with rc 0x%x", __func__, clientAddr.sin_addr.s_addr, rc);
+		FileUtils::LogLine("%s: controller #0x%x flushState method failed with rc 0x%x", __PRETTY_FUNCTION__, clientAddr.sin_addr.s_addr, rc);
 		return false;
 	}
 
@@ -123,7 +123,7 @@ void VirtualControllerService::Cleanup(bool force) {
 	std::map<std::uint32_t, VirtualController*>::const_iterator it = this->controllers.cbegin();
 	while(it != this->controllers.cend()) {
 		if(force || it->second->Inactive()) {
-			FileUtils::LogLine("%s: cleaning up controller #0x%x", __func__, it->first);
+			FileUtils::LogLine("%s: cleaning up controller #0x%x", __PRETTY_FUNCTION__, it->first);
 			delete it->second;
 			it = this->controllers.erase(it);
 		} else {
@@ -135,14 +135,14 @@ void VirtualControllerService::Cleanup(bool force) {
 void VirtualControllerService::ProcessThreadFunc(void *arg) {
 	VirtualControllerService* service = (VirtualControllerService*)arg;
 	svcSleepThread(6000000000ULL);
-	FileUtils::LogLine("%s: Starting", __func__);
+	FileUtils::LogLine("%s: Starting", __PRETTY_FUNCTION__);
 
 	R_ABORT_UNLESS(socketInitialize(&g_socketInitConfig));
 	R_ABORT_UNLESS(VirtualController::Initialize());
 
 	service->BindServer();
 
-	FileUtils::LogLine("%s: listening on UDP port %d", __func__, VIRTUAL_CONTROLLER_PORT);
+	FileUtils::LogLine("%s: listening on UDP port %d", __PRETTY_FUNCTION__, VIRTUAL_CONTROLLER_PORT);
 
 	u64 lastCleanupTicks = armGetSystemTick();
 	u64 errorCount = 0;
@@ -151,7 +151,7 @@ void VirtualControllerService::ProcessThreadFunc(void *arg) {
 		if(!service->ReceiveMessages()) {
 			errorCount++;
 			if(errorCount >= 100) {
-				FileUtils::LogLine("%s: service->ReceiveMessages() errored %d times; restarting the server", __func__, errorCount);
+				FileUtils::LogLine("%s: service->ReceiveMessages() errored %d times; restarting the server", __PRETTY_FUNCTION__, errorCount);
 				service->CloseServer();
 				service->BindServer();
 				errorCount = 0;
