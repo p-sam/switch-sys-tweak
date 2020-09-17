@@ -17,7 +17,7 @@
 #include "nsvm_mitm_service.hpp"
 #include "file_utils.hpp"
 
-bool NsVmMitmService::ShouldMitm(const ams::sm::MitmProcessInfo &client_info) {
+bool NsVmMitmService::ShouldMitm(const ams::sm::MitmProcessInfo& client_info) {
 	bool should_mitm = (
 		client_info.program_id == ams::ncm::SystemAppletId::WifiWebAuth ||
 		client_info.program_id == ams::ncm::SystemAppletId::Web ||

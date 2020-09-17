@@ -26,3 +26,4 @@ class VirtualController {
 		static Result Initialize();
 		static void Exit();
 };
+

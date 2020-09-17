@@ -15,27 +15,25 @@
  */
  
 #pragma once
-#include <stratosphere.hpp>
+#include "libams.hpp"
+
+enum NsVmCmdId : u32 {
+	NeedsUpdateVulnerability = 1200,
+};
+
+#define NSVM_MITM_INTERFACE_INFO(C, H) \
+	AMS_SF_METHOD_INFO_F(C, H, NsVmCmdId, NeedsUpdateVulnerability, (ams::sf::Out<u8> out))
+
+AMS_SF_DEFINE_MITM_INTERFACE_F(NsVmMitmInterface, NSVM_MITM_INTERFACE_INFO);
 
 #define NSVM_MITM_SERVICE_NAME "ns:vm"
 
-class NsVmMitmService : public ams::sf::IMitmServiceObject {
+class NsVmMitmService : public ams::sf::MitmServiceImplBase {
 	public:
-		enum class CommandId : u32 {
-			NeedsUpdateVulnerability = 1200,
-		};
-	public:
-		NsVmMitmService(std::shared_ptr<Service> &&s, const ams::sm::MitmProcessInfo &c) : ams::sf::IMitmServiceObject(std::forward<std::shared_ptr<Service>>(s), c) {}
+		using ::ams::sf::MitmServiceImplBase::MitmServiceImplBase;
+		static bool ShouldMitm(const ams::sm::MitmProcessInfo& client_info);
 
-		static bool ShouldMitm(const ams::sm::MitmProcessInfo &client_info);
-
-	protected:
-		/* Overridden commands. */
-		ams::Result NeedsUpdateVulnerability(ams::sf::Out<u8> out);
-	public:
-		DEFINE_SERVICE_DISPATCH_TABLE {
-			MAKE_SERVICE_COMMAND_META(NeedsUpdateVulnerability),
-		};
+		NSVM_MITM_INTERFACE_INFO(_, AMS_SF_IMPL_DECLARE_INTERFACE_METHODS);
 
 		static constexpr ams::sm::ServiceName GetServiceName() {
 			return ams::sm::ServiceName::Encode(NSVM_MITM_SERVICE_NAME);
@@ -45,3 +43,4 @@ class NsVmMitmService : public ams::sf::IMitmServiceObject {
 			return 16;
 		}
 };
+static_assert(IsNsVmMitmInterface<NsVmMitmService>);

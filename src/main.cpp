@@ -110,7 +110,9 @@ constexpr size_t NumServers = 0
 #endif
 ;
 
+#ifndef HAVE_VCON
 static_assert(NumServers > 0, "At least one feature should be enabled.");
+#endif
 
 constexpr size_t MaxSessions = 1
 #ifdef HAVE_NSVM_SAFE
@@ -131,11 +133,11 @@ int main(int argc, char **argv)
 
 #ifdef HAVE_NSVM_SAFE
 	FileUtils::LogLine("Registering NsVmMitmService");
-	R_ABORT_UNLESS((serverManager.RegisterMitmServer<NsVmMitmService>(NsVmMitmService::GetServiceName())));
+	R_ABORT_UNLESS((serverManager.RegisterMitmServer<NsVmMitmInterface, NsVmMitmService>(NsVmMitmService::GetServiceName())));
 #endif
 #ifdef HAVE_NSAM_CONTROL
 	FileUtils::LogLine("Registering NsAm2MitmService");
-	R_ABORT_UNLESS((serverManager.RegisterMitmServer<NsAm2MitmService>(NsAm2MitmService::GetServiceName())));
+	R_ABORT_UNLESS((serverManager.RegisterMitmServer<NsAm2MitmInterface, NsAm2MitmService>(NsAm2MitmService::GetServiceName())));
 #endif
 
 #ifdef HAVE_VCON
