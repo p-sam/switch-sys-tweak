@@ -1,0 +1,45 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  container-build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkita64_devkitarm
+    steps:
+      - name: env
+        run: |
+          cat /proc/cpuinfo
+          free -m
+      - name: checkout - project
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
+          fetch-depth: 1
+      - name: deps - libnx
+        run: |
+          git clone https://github.com/switchbrew/libnx.git /tmp/libnx
+          make -C /tmp/libnx install -j4
+      - name: deps - ams libs
+        run: |
+          make -C lib/ams/libstratosphere -j4
+
+      - name: build - FEAT_ALL
+        run: |
+          make clean
+          make FEAT_ALL="Y" -j4
+      - name: store - FEAT_ALL
+        uses: actions/upload-artifact@v2
+        with:
+          name: sys-tweak.nsp
+          path: out/sys-tweak.nsp
+
+      - name: build - FEAT_ALL TOGL_LOGGING
+        run: |
+          make clean
+          make FEAT_ALL="Y" TOGL_LOGGING="Y" -j4
+      - name: store - FEAT_ALL TOGL_LOGGING
+        uses: actions/upload-artifact@v2
+        with:
+          name: sys-tweak_log.nsp
+          path: out/sys-tweak.nsp
