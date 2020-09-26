@@ -43,3 +43,24 @@ jobs:
         with:
           name: sys-tweak_log.nsp
           path: out/sys-tweak.nsp
+  nightly:
+    needs: [container-build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ./artifacts_raw
+      - name: Flatten artifacts tree
+        run: |
+          mkdir artifacts
+          find ./artifacts_raw -type f -exec mv {} ./artifacts \;
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Latest successful build"
+          files: |
+            artifacts/*

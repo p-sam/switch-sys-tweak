@@ -1,6 +1,8 @@
 switch-sys-tweak
 ================
 
+[![Build](https://github.com/p-sam/switch-sys-tweak/workflows/Build/badge.svg?branch=master)](https://github.com/p-sam/switch-sys-tweak/releases/tag/latest)
+
 A collection of miscellaneous mitms that may eventually grow as stuff gets added.
 
 ## Features
