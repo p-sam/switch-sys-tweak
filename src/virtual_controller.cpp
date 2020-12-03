@@ -15,9 +15,9 @@ void VirtualController::Exit() {
 }
 
 VirtualController::VirtualController() {
-	this->hdlsHandle = 0;
+	this->hdlsHandle = {0};
 	this->hidDeviceInfo.deviceType = HidDeviceType_FullKey15;
-	this->hidDeviceInfo.npadInterfaceType = NpadInterfaceType_Bluetooth;
+	this->hidDeviceInfo.npadInterfaceType = HidNpadInterfaceType_Bluetooth;
 
 	this->hidDeviceInfo.singleColorBody = 0xFF735A01;
 	this->hidDeviceInfo.singleColorButtons = 0xFF000000;
@@ -42,7 +42,7 @@ Result VirtualController::Connect() {
 	}
 
 	if(R_FAILED(rc)) {
-		this->hdlsHandle = 0;
+		this->hdlsHandle = {0};
 	}
 
 	return rc;
@@ -51,7 +51,7 @@ Result VirtualController::Connect() {
 void VirtualController::Disconnect() {
 	if(this->Connected()) {
 		hiddbgDetachHdlsVirtualDevice(this->hdlsHandle);
-		this->hdlsHandle = 0;
+		this->hdlsHandle = {0};
 	}
 }
 
@@ -88,10 +88,10 @@ void VirtualController::SetState(ControllerPacket* packet) {
 	_UPDATE_BUTTON(CONTROLLER_PACKET_KEY_HOME, KEY_HOME);
 #undef _UPDATE_BUTTON
 
-	this->hidState.joysticks[JOYSTICK_LEFT].dx = packet->leftStick.dx * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
-	this->hidState.joysticks[JOYSTICK_LEFT].dy = packet->leftStick.dy * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
-	this->hidState.joysticks[JOYSTICK_RIGHT].dx = packet->rightStick.dx * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
-	this->hidState.joysticks[JOYSTICK_RIGHT].dy = packet->rightStick.dy * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
+	this->hidState.analog_stick_l.x = packet->leftStick.dx * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
+	this->hidState.analog_stick_l.y = packet->leftStick.dy * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
+	this->hidState.analog_stick_r.x = packet->rightStick.dx * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
+	this->hidState.analog_stick_r.y = packet->rightStick.dy * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
 }
 
 Result VirtualController::FlushState() {

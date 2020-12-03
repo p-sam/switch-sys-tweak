@@ -7,7 +7,7 @@ class VirtualController {
 	protected:
 		HiddbgHdlsDeviceInfo hidDeviceInfo;
 		HiddbgHdlsState hidState;
-		u64 hdlsHandle;
+		HiddbgHdlsHandle hdlsHandle;
 
 		u64 clientTick;
 		u64 lastUpdateTick;
@@ -17,7 +17,7 @@ class VirtualController {
 		~VirtualController();
 
 		inline bool Inactive() { return armTicksToNs(armGetSystemTick() - this->lastUpdateTick) > 10000000000ULL; }
-		inline bool Connected() { return this->hdlsHandle != 0; }
+		inline bool Connected() { return this->hdlsHandle.handle != 0; }
 		Result Connect();
 		void Disconnect();
 		void SetState(ControllerPacket* packet);
