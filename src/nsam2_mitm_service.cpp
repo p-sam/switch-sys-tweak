@@ -91,7 +91,7 @@ ams::Result NsROAppControlDataService::GetAppControlData(u8 flag, u64 tid, const
 
 	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::GetAppControlData(%u, 0x%016lx, buf[0x%lx]); // %x[0x%lx]", NSAM2_MITM_SERVICE_NAME, this->client_info.process_id, this->client_info.program_id, flag, tid, buffer.GetSize(), rc, out_size.GetValue());
 
-	if(R_SUCCEEDED(rc) && buffer.GetSize() == sizeof(NsAppControlData)) {
+	if(R_SUCCEEDED(rc) && buffer.GetSize() == sizeof(NsAppControlData) && FileUtils::WaitInitialized()) {
 		_ProcessControlData(tid, (NsAppControlData*)buffer.GetPointer(), out_size.GetPointer());
 	}
 	return rc;

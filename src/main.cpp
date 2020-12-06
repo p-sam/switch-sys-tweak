@@ -81,23 +81,10 @@ void __appInit(void) {
 	ams::hos::InitializeForStratosphere();
 	R_ASSERT(smInitialize());
 
-#ifdef HAVE_NSVM_SAFE
-	R_ABORT_UNLESS(nsvmInitialize());
-#endif
-#ifdef HAVE_NSAM_CONTROL
-	R_ABORT_UNLESS(nsInitialize());
-#endif
-
 	ams::CheckApiVersion();
 }
 
 void __appExit(void) {
-#ifdef HAVE_NSVM_SAFE
-	nsvmExit();
-#endif
-#ifdef HAVE_NSAM_CONTROL
-	nsExit();
-#endif
 	smExit();
 }
 
@@ -129,7 +116,7 @@ int main(int argc, char **argv)
 {
 	MitmManager serverManager;
 
-	R_ABORT_UNLESS(FileUtils::Initialize());
+	R_ABORT_UNLESS(FileUtils::InitializeAsync());
 
 #ifdef HAVE_NSVM_SAFE
 	FileUtils::LogLine("Registering NsVmMitmService");

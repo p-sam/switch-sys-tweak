@@ -27,8 +27,9 @@
 class FileUtils {
 	public:
 		static void Exit();
-		static Result Initialize();
+		static ams::Result Initialize();
 		static bool IsInitialized();
-		static void InitializeAsync();
+		static bool WaitInitialized();
+		static ams::Result InitializeAsync();
 		static void LogLine(const char *format, ...);
 };

@@ -16,18 +16,27 @@
 
 #include "file_utils.hpp"
 
-static Mutex g_log_mutex;
+static ams::os::Mutex g_log_mutex{false};
+static ams::os::ThreadType g_init_thread;
 static std::atomic_bool g_has_initialized = false;
 
 extern "C" void __libnx_init_time(void);
-
 static void _FileUtils_InitializeThreadFunc(void *args) {
-	FileUtils::Initialize();
-	svcExitThread();
+	R_ABORT_UNLESS(FileUtils::Initialize());
 }
 
 bool FileUtils::IsInitialized() {
 	return g_has_initialized;
+}
+
+bool FileUtils::WaitInitialized() {
+	if(!g_has_initialized) {
+		if(g_init_thread.state == ams::os::ThreadType::State_NotInitialized) {
+			return false;
+		}
+		ams::os::WaitThread(&g_init_thread);
+	}
+	return true;
 }
 
 void FileUtils::LogLine(const char *format, ...) {
@@ -35,7 +44,7 @@ void FileUtils::LogLine(const char *format, ...) {
 	va_list args;
 	va_start(args, format);
 	if (g_has_initialized) {
-		mutexLock(&g_log_mutex);
+		std::scoped_lock lock(g_log_mutex);
 
 		FILE *file = fopen(FILE_LOG_FILE_PATH, "a");
 		if (file) {
@@ -48,50 +57,41 @@ void FileUtils::LogLine(const char *format, ...) {
 			fprintf(file, "\n");
 			fclose(file);
 		}
-		mutexUnlock(&g_log_mutex);
 	}
 	va_end(args);
 #endif
 }
 
-void FileUtils::InitializeAsync() {
-	Thread initThread = {0};
-	threadCreate(&initThread, _FileUtils_InitializeThreadFunc, NULL, NULL, 0x4000, 0x15, 0);
-	threadStart(&initThread);
+ams::Result FileUtils::InitializeAsync() {
+	s32 currentPriority = ams::os::GetThreadPriority(ams::os::GetCurrentThread());
+
+	R_TRY(ams::os::CreateThread(&g_init_thread, &_FileUtils_InitializeThreadFunc, NULL, NULL, 0x2000, currentPriority));
+	ams::os::StartThread(&g_init_thread);
+
+	return ams::ResultSuccess();
 }
 
-Result FileUtils::Initialize() {
-	Result rc = 0;
-
-	mutexInit(&g_log_mutex);
-
+ams::Result FileUtils::Initialize() {
 #if ENABLE_LOGGING
-	if (R_SUCCEEDED(rc)) {
-		rc = timeInitialize();
-	}
+	R_TRY(timeInitialize());
 
 	__libnx_init_time();
 	timeExit();
 #endif
 
-	if (R_SUCCEEDED(rc)) {
-		rc = fsInitialize();
-	}
+	R_TRY(fsInitialize());
+	R_TRY(fsdevMountSdmc());
 
-	if (R_SUCCEEDED(rc)) {
-		rc = fsdevMountSdmc();
-	}
+	g_has_initialized = true;
+	FileUtils::LogLine("=== " TARGET " ===");
 
-	if (R_SUCCEEDED(rc)) {
-		g_has_initialized = true;
-
-		FileUtils::LogLine("=== " TARGET " ===");
-	}
-
-	return rc;
+	return ams::ResultSuccess();
 }
 
 void FileUtils::Exit() {
+	ams::os::WaitThread(&g_init_thread);
+	ams::os::DestroyThread(&g_init_thread);
+
 	if (!g_has_initialized) {
 		return;
 	}
