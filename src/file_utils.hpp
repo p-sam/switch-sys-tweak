@@ -15,14 +15,21 @@
  */
 
 #pragma once
-#include <stratosphere.hpp>
 #include <time.h>
 #include <vector>
 #include <string>
 #include <atomic>
 #include <cstdarg>
 
+#include "libams.hpp"
+
 #define FILE_LOG_FILE_PATH "/" TARGET ".txt"
+
+#define FILE_LOG_IPC(name, client_info, format, ...) \
+	FileUtils::LogLine("%s::%s<%ld|0x%016lx>" format, name, __func__, client_info.process_id, client_info.program_id, ##__VA_ARGS__)
+
+#define FILE_LOG_IPC_CLASS(format, ...) \
+	FILE_LOG_IPC(this->GetDisplayName(), this->client_info, format, ##__VA_ARGS__)
 
 class FileUtils {
 	public:

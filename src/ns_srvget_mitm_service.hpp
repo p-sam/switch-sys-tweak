@@ -45,27 +45,43 @@ class NsROAppControlDataService {
 			serviceClose(srv.get());
 		}
 
+		constexpr const char* GetDisplayName() {
+			return "NsROAppControlDataInterface";
+		}
+
 		NS_RO_APP_CONTROL_DATA_INTERFACE_INFO(_, AMS_SF_IMPL_DECLARE_INTERFACE_METHODS);
 };
 static_assert(IsNsROAppControlDataInterface<NsROAppControlDataService>);
 
-enum class NsAm2CmdId : u32 {
+enum class NsSrvGetterCmdId : u32 {
 	GetROAppControlDataInterface = 7989,
+};
+
+#define NS_SRV_GETTER_MITM_INTERFACE_INFO(C, H) \
+	AMS_SF_METHOD_INFO_F(C, H, NsSrvGetterCmdId, GetROAppControlDataInterface, (ams::sf::Out<std::shared_ptr<NsROAppControlDataInterface>> out))
+
+AMS_SF_DEFINE_MITM_INTERFACE_F(NsServiceGetterMitmInterface, NS_SRV_GETTER_MITM_INTERFACE_INFO);
+
+class NsServiceGetterMitmService : public ams::sf::MitmServiceImplBase {
+	public:
+		using ::ams::sf::MitmServiceImplBase::MitmServiceImplBase;
+		NS_SRV_GETTER_MITM_INTERFACE_INFO(_, AMS_SF_IMPL_DECLARE_INTERFACE_METHODS)
+
+		constexpr const char* GetDisplayName() {
+			return "NsServiceGetterInterface";
+		}
 };
 
 #define NSAM2_MITM_SERVICE_NAME "ns:am2"
 
-#define NS_AM2_MITM_INTERFACE_INFO(C, H) \
-	AMS_SF_METHOD_INFO_F(C, H, NsAm2CmdId, GetROAppControlDataInterface, (ams::sf::Out<std::shared_ptr<NsROAppControlDataInterface>> out))
-
-AMS_SF_DEFINE_MITM_INTERFACE_F(NsAm2MitmInterface, NS_AM2_MITM_INTERFACE_INFO);
-
-class NsAm2MitmService : public ams::sf::MitmServiceImplBase {
+class NsAm2MitmService : public NsServiceGetterMitmService {
 	public:
-		using ::ams::sf::MitmServiceImplBase::MitmServiceImplBase;
+		using ::NsServiceGetterMitmService::NsServiceGetterMitmService;
 		static bool ShouldMitm(const ams::sm::MitmProcessInfo& client_info);
 
-		NS_AM2_MITM_INTERFACE_INFO(_, AMS_SF_IMPL_DECLARE_INTERFACE_METHODS)
+		constexpr const char* GetDisplayName() {
+			return NSAM2_MITM_SERVICE_NAME;
+		}
 
 		static constexpr ams::sm::ServiceName GetServiceName() {
 			return ams::sm::ServiceName::Encode(NSAM2_MITM_SERVICE_NAME);
@@ -75,4 +91,25 @@ class NsAm2MitmService : public ams::sf::MitmServiceImplBase {
 			return 4;
 		}
 };
-static_assert(IsNsAm2MitmInterface<NsAm2MitmService>);
+static_assert(IsNsServiceGetterMitmInterface<NsAm2MitmService>);
+
+#define NSRO_MITM_SERVICE_NAME "ns:ro"
+
+class NsRoMitmService : public NsServiceGetterMitmService {
+	public:
+		using ::NsServiceGetterMitmService::NsServiceGetterMitmService;
+		static bool ShouldMitm(const ams::sm::MitmProcessInfo& client_info);
+
+		constexpr const char* GetDisplayName() {
+			return NSRO_MITM_SERVICE_NAME;
+		}
+
+		static constexpr ams::sm::ServiceName GetServiceName() {
+			return ams::sm::ServiceName::Encode(NSRO_MITM_SERVICE_NAME);
+		}
+
+		static constexpr size_t GetMaxSessions() {
+			return 4;
+		}
+};
+static_assert(IsNsServiceGetterMitmInterface<NsRoMitmService>);

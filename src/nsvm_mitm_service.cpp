@@ -24,12 +24,12 @@ bool NsVmMitmService::ShouldMitm(const ams::sm::MitmProcessInfo& client_info) {
 		client_info.program_id == ams::ncm::SystemAppletId::OfflineWeb
 	);
 
-	FileUtils::LogLine("\"%s\"<>::ShouldMitm(%ld, 0x%016lx); // %s", NSVM_MITM_SERVICE_NAME, client_info.process_id, client_info.program_id, should_mitm ? "true" : "false");
+	FILE_LOG_IPC(NSVM_MITM_SERVICE_NAME, client_info, "() // %s", should_mitm ? "true" : "false");
 	return should_mitm;
 }
 
 ams::Result NsVmMitmService::NeedsUpdateVulnerability(ams::sf::Out<u8> out) {
 	out.SetValue(0);
-	FileUtils::LogLine("\"%s\"<%ld|0x%016lx>::NeedsUpdateVulnerability(); // %x", NSVM_MITM_SERVICE_NAME, this->client_info.process_id, this->client_info.program_id, out.GetValue());
+	FILE_LOG_IPC_CLASS("() // %x", out.GetValue());
 	return ams::ResultSuccess();
 }

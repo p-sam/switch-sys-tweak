@@ -23,7 +23,7 @@ DEFINES		+=	-DTARGET="\"$(TARGET)\""
 #---------------------------------------------------------------------------------
 # options for features
 #---------------------------------------------------------------------------------
-FEATURES := NSVM_SAFE NSAM_CONTROL VCON
+FEATURES := NSVM_SAFE NSAM_CONTROL NSRO_CONTROL VCON
 TOGGLES := LOGGING
 #---------------------------------------------------------------------------------
 ENABLED_FEATURES := $(foreach feat,$(FEATURES),$(if $(or $(FEAT_$(feat)),$(FEAT_ALL)),$(feat)))

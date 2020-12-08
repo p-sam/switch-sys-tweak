@@ -35,6 +35,10 @@ class NsVmMitmService : public ams::sf::MitmServiceImplBase {
 
 		NSVM_MITM_INTERFACE_INFO(_, AMS_SF_IMPL_DECLARE_INTERFACE_METHODS);
 
+		constexpr const char* GetDisplayName() {
+			return NSVM_MITM_SERVICE_NAME;
+		}
+
 		static constexpr ams::sm::ServiceName GetServiceName() {
 			return ams::sm::ServiceName::Encode(NSVM_MITM_SERVICE_NAME);
 		}

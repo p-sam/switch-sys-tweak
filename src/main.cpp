@@ -24,8 +24,8 @@
 #ifdef HAVE_NSVM_SAFE
 #include "nsvm_mitm_service.hpp"
 #endif
-#ifdef HAVE_NSAM_CONTROL
-#include "nsam2_mitm_service.hpp"
+#if defined(HAVE_NSAM_CONTROL) || defined(HAVE_NSRO_CONTROL)
+#include "ns_srvget_mitm_service.hpp"
 #endif
 #ifdef HAVE_VCON
 #include "virtual_controller_service.hpp"
@@ -95,6 +95,9 @@ constexpr size_t NumServers = 0
 #ifdef HAVE_NSAM_CONTROL
 	+ 1
 #endif
+#ifdef HAVE_NSRO_CONTROL
+	+ 1
+#endif
 ;
 
 #ifndef HAVE_VCON
@@ -107,6 +110,9 @@ constexpr size_t MaxSessions = 1
 #endif
 #ifdef HAVE_NSAM_CONTROL
 	+ NsAm2MitmService::GetMaxSessions()
+#endif
+#ifdef HAVE_NSRO_CONTROL
+	+ NsRoMitmService::GetMaxSessions()
 #endif
 ;
 
@@ -124,7 +130,11 @@ int main(int argc, char **argv)
 #endif
 #ifdef HAVE_NSAM_CONTROL
 	FileUtils::LogLine("Registering NsAm2MitmService");
-	R_ABORT_UNLESS((serverManager.RegisterMitmServer<NsAm2MitmInterface, NsAm2MitmService>(NsAm2MitmService::GetServiceName())));
+	R_ABORT_UNLESS((serverManager.RegisterMitmServer<NsServiceGetterMitmInterface, NsAm2MitmService>(NsAm2MitmService::GetServiceName())));
+#endif
+#ifdef HAVE_NSRO_CONTROL
+	FileUtils::LogLine("Registering NsRoMitmService");
+	R_ABORT_UNLESS((serverManager.RegisterMitmServer<NsServiceGetterMitmInterface, NsRoMitmService>(NsRoMitmService::GetServiceName())));
 #endif
 
 #ifdef HAVE_VCON
@@ -133,7 +143,7 @@ int main(int argc, char **argv)
 	vconService.Start();
 #endif
 
-	FileUtils::LogLine("serverManager.LoopProcess();");
+	FileUtils::LogLine("serverManager.LoopProcess()");
 	serverManager.LoopProcess();
 
 #ifdef HAVE_VCON
