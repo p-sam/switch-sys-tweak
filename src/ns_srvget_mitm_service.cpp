@@ -42,7 +42,7 @@ static int _ProcessControlDataIniHandler(void *user, const char *section, const 
 }
 
 static void _ProcessControlData(u64 tid, NsAppControlData* data, u64* size) {
-	char path[FS_MAX_PATH] = {0};
+	char path[50] = {0};
 	snprintf(path, sizeof(path)-1, "/atmosphere/contents/%016lx/config.ini", tid);
 	ini_parse(path, _ProcessControlDataIniHandler, data);
 	snprintf(path, sizeof(path)-1, "/atmosphere/contents/%016lx/icon.jpg", tid);
