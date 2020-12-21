@@ -80,8 +80,6 @@ void __libnx_initheap(void) {
 void __appInit(void) {
 	ams::hos::InitializeForStratosphere();
 	R_ASSERT(smInitialize());
-
-	ams::CheckApiVersion();
 }
 
 void __appExit(void) {
