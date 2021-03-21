@@ -19,7 +19,7 @@
 #include "file_utils.hpp"
 #include "ini.h"
 
-static int _ProcessControlDataIniHandler(void *user, const char *section, const char *name, const char *value) {
+static int _ProcessControlDataIniHandler(void* user, const char* section, const char* name, const char* value) {
 	NsAppControlData* data = (NsAppControlData*)user;
 
 	if (strcasecmp(section, "override_nacp") == 0) {
@@ -69,7 +69,7 @@ bool NsRoMitmService::ShouldMitm(const ams::sm::MitmProcessInfo& client_info) {
 	return should_mitm;
 }
 
-ams::Result NsServiceGetterMitmService::GetROAppControlDataInterface(ams::sf::Out<std::shared_ptr<NsROAppControlDataInterface>> out) {
+ams::Result NsServiceGetterMitmService::GetROAppControlDataInterface(ams::sf::Out<ams::sf::SharedPointer<NsROAppControlDataInterface>> out) {
 	Service s;
 	Result rc = serviceDispatch(this->forward_service.get(), (u32)NsSrvGetterCmdId::GetROAppControlDataInterface,
 		.out_num_objects = 1,
@@ -78,7 +78,7 @@ ams::Result NsServiceGetterMitmService::GetROAppControlDataInterface(ams::sf::Ou
 
 	if(R_SUCCEEDED(rc)) {
 		const ams::sf::cmif::DomainObjectId target_object_id{serviceGetObjectId(&s)};
-		out.SetValue(ams::sf::MakeShared<NsROAppControlDataInterface, NsROAppControlDataService>(this->client_info, std::make_unique<Service>(s)), target_object_id);
+		out.SetValue(ams::sf::CreateSharedObjectEmplaced<NsROAppControlDataInterface, NsROAppControlDataService>(this->client_info, std::make_unique<Service>(s)), target_object_id);
 	}
 
 	FILE_LOG_IPC_CLASS("() // %x", rc);

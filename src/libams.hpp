@@ -18,22 +18,22 @@
 
 #include <stratosphere.hpp>
 
+// Avoid copying prototypes, cmd ids, etc as much as possible
+
 #define AMS_CONCAT_NAMESPACE(A, B) A::B
 
-#define AMS_SF_METHOD_INFO_F(CLASSNAME, HANDLER, ENUM_TYPE, NAME, ARGS) \
-	AMS_SF_METHOD_INFO_8(CLASSNAME, HANDLER, (u32)AMS_CONCAT_NAMESPACE(ENUM_TYPE, NAME), ams::Result, NAME, ARGS, ams::hos::Version_Min, ams::hos::Version_Max)
+#define AMS_SF_METHOD_INFO_F(CLASSNAME, HANDLER, ENUM_TYPE, NAME, ARGS, ARGNAMES) \
+	AMS_SF_METHOD_INFO_9(CLASSNAME, HANDLER, (u32)AMS_CONCAT_NAMESPACE(ENUM_TYPE, NAME), ams::Result, NAME, ARGS, ARGNAMES, ams::hos::Version_Min, ams::hos::Version_Max)
 
-// XXX: Fixes macros outputting prototypes without absolute namespaces
+#define AMS_SF_DECLARE_INTERFACE_METHODS(CLASSNAME, CMD_ID, RETURN, NAME, ARGS, ARGNAMES, VERSION_MIN, VERSION_MAX) \
+	RETURN NAME ARGS;
+
 #define AMS_SF_DEFINE_INTERFACE_F(NAME, MACRO) \
-	namespace ams::sf_interface { \
-		AMS_SF_DEFINE_INTERFACE(NAME, MACRO) \
-	} \
+	AMS_SF_DEFINE_INTERFACE(ams::sf_interface, NAME, MACRO); \
 	using AMS_CONCAT_NAMESPACE(::ams::sf_interface, NAME); \
 	using AMS_CONCAT_NAMESPACE(::ams::sf_interface, Is##NAME)
 
 #define AMS_SF_DEFINE_MITM_INTERFACE_F(NAME, MACRO) \
-	namespace ams::sf_mitm_interface { \
-		AMS_SF_DEFINE_MITM_INTERFACE(NAME, MACRO) \
-	} \
+	AMS_SF_DEFINE_MITM_INTERFACE(ams::sf_mitm_interface, NAME, MACRO); \
 	using AMS_CONCAT_NAMESPACE(::ams::sf_mitm_interface, NAME); \
 	using AMS_CONCAT_NAMESPACE(::ams::sf_mitm_interface, Is##NAME)

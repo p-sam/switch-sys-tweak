@@ -38,5 +38,5 @@ class FileUtils {
 		static bool IsInitialized();
 		static bool WaitInitialized();
 		static ams::Result InitializeAsync();
-		static void LogLine(const char *format, ...);
+		static void LogLine(const char* format, ...);
 };

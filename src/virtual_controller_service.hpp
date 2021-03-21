@@ -14,7 +14,7 @@ class VirtualControllerService
 		void Stop();
 
 	protected:
-		static void ProcessThreadFunc(void *arg);
+		static void ProcessThreadFunc(void* arg);
 		void BindServer();
 		void CloseServer();
 		bool ReceiveMessages();

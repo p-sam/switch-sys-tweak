@@ -21,8 +21,10 @@ static ams::os::ThreadType g_init_thread;
 static std::atomic_bool g_has_initialized = false;
 
 extern "C" void __libnx_init_time(void);
-static void _FileUtils_InitializeThreadFunc(void *args) {
-	R_ABORT_UNLESS(FileUtils::Initialize());
+static void _FileUtils_InitializeThreadFunc(void* args) {
+	ams::sm::DoWithSession([&]() {
+		R_ABORT_UNLESS(FileUtils::Initialize());
+	});
 }
 
 bool FileUtils::IsInitialized() {
@@ -39,14 +41,14 @@ bool FileUtils::WaitInitialized() {
 	return true;
 }
 
-void FileUtils::LogLine(const char *format, ...) {
+void FileUtils::LogLine(const char* format, ...) {
 #ifdef ENABLE_LOGGING
 	va_list args;
 	va_start(args, format);
 	if (g_has_initialized) {
 		std::scoped_lock lock(g_log_mutex);
 
-		FILE *file = fopen(FILE_LOG_FILE_PATH, "a");
+		FILE* file = fopen(FILE_LOG_FILE_PATH, "a");
 		if (file) {
 			time_t timer  = time(NULL);
 			struct tm* timerTm = localtime(&timer);

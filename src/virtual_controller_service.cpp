@@ -132,13 +132,14 @@ void VirtualControllerService::Cleanup(bool force) {
 	}
 }
 
-void VirtualControllerService::ProcessThreadFunc(void *arg) {
+void VirtualControllerService::ProcessThreadFunc(void* arg) {
 	VirtualControllerService* service = (VirtualControllerService*)arg;
 	svcSleepThread(6000000000ULL);
 	FileUtils::LogLine("%s: Starting", __PRETTY_FUNCTION__);
-
-	R_ABORT_UNLESS(socketInitialize(&g_socketInitConfig));
-	R_ABORT_UNLESS(VirtualController::Initialize());
+	ams::sm::DoWithSession([&]() {
+		R_ABORT_UNLESS(socketInitialize(&g_socketInitConfig));
+		R_ABORT_UNLESS(VirtualController::Initialize());
+	});
 
 	service->BindServer();
 

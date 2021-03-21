@@ -22,7 +22,7 @@ enum NsVmCmdId : u32 {
 };
 
 #define NSVM_MITM_INTERFACE_INFO(C, H) \
-	AMS_SF_METHOD_INFO_F(C, H, NsVmCmdId, NeedsUpdateVulnerability, (ams::sf::Out<u8> out))
+	AMS_SF_METHOD_INFO_F(C, H, NsVmCmdId, NeedsUpdateVulnerability, (ams::sf::Out<u8> out), (out))
 
 AMS_SF_DEFINE_MITM_INTERFACE_F(NsVmMitmInterface, NSVM_MITM_INTERFACE_INFO);
 
@@ -33,7 +33,7 @@ class NsVmMitmService : public ams::sf::MitmServiceImplBase {
 		using ::ams::sf::MitmServiceImplBase::MitmServiceImplBase;
 		static bool ShouldMitm(const ams::sm::MitmProcessInfo& client_info);
 
-		NSVM_MITM_INTERFACE_INFO(_, AMS_SF_IMPL_DECLARE_INTERFACE_METHODS);
+		NSVM_MITM_INTERFACE_INFO(_, AMS_SF_DECLARE_INTERFACE_METHODS);
 
 		constexpr const char* GetDisplayName() {
 			return NSVM_MITM_SERVICE_NAME;
