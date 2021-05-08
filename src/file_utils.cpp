@@ -22,9 +22,7 @@ static std::atomic_bool g_has_initialized = false;
 
 extern "C" void __libnx_init_time(void);
 static void _FileUtils_InitializeThreadFunc(void* args) {
-	ams::sm::DoWithSession([&]() {
-		R_ABORT_UNLESS(FileUtils::Initialize());
-	});
+	R_ABORT_UNLESS(FileUtils::Initialize());
 }
 
 bool FileUtils::IsInitialized() {

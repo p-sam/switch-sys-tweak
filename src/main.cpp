@@ -72,10 +72,13 @@ void __libnx_initheap(void) {
 }
 
 void __appInit(void) {
+	ams::sm::Initialize();
 	ams::hos::InitializeForStratosphere();
 }
 
-void __appExit(void) {}
+void __appExit(void) {
+	ams::sm::Finalize();
+}
 
 #ifndef HAVE_VCON
 static_assert(MitmManager::HasAtLeastOneServiceDefined() > 0, "At least one feature should be enabled.");
