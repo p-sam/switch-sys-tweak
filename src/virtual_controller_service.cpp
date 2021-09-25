@@ -15,21 +15,20 @@
 static const SocketInitConfig g_socketInitConfig = {
 	.bsdsockets_version = 1,
 
-	//We don't use TCP, set all TCP buffers to 0
-	.tcp_tx_buf_size = 0,
-	.tcp_rx_buf_size = 0,
-	.tcp_tx_buf_max_size = 0,
-	.tcp_rx_buf_max_size = 0,
+	.tcp_tx_buf_size = 0x100,
+	.tcp_rx_buf_size = 0x100,
+	.tcp_tx_buf_max_size = 0x100,
+	.tcp_rx_buf_max_size = 0x100,
 
 	.udp_tx_buf_size = 0x100,
-	.udp_rx_buf_size = 0x10000,
+	.udp_rx_buf_size = 0x8000,
 
 	.sb_efficiency = 1,
 };
 
 VirtualControllerService::VirtualControllerService(): threadMutex(false) {
 
-	R_ABORT_UNLESS(ams::os::CreateThread(&this->thread, &VirtualControllerService::ProcessThreadFunc, this, NULL, 0x4000, 31));
+	R_ABORT_UNLESS(ams::os::CreateThread(&this->thread, &VirtualControllerService::ProcessThreadFunc, this, NULL, 0x2000, 31));
 	this->running = false;
 	this->sock = -1;
 }

@@ -1,3 +1,4 @@
 **/out
 **/build
 .DS_Store
+src/hotkey_custom.inc

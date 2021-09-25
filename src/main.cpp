@@ -23,6 +23,10 @@
 #include "virtual_controller_service.hpp"
 #endif
 
+#ifdef HAVE_HOTKEY
+#include "hotkey_service.hpp"
+#endif
+
 #include "libams.hpp"
 #include "file_utils.hpp"
 #include "mitm_manager.hpp"
@@ -80,7 +84,7 @@ void __appExit(void) {
 	ams::sm::Finalize();
 }
 
-#ifndef HAVE_VCON
+#if !defined(HAVE_VCON) && !defined(HAVE_HOTKEY)
 static_assert(MitmManager::HasAtLeastOneServiceDefined() > 0, "At least one feature should be enabled.");
 #endif
 
@@ -90,6 +94,12 @@ int main(int argc, char **argv)
 
 	R_ABORT_UNLESS(FileUtils::InitializeAsync());
 	R_ABORT_UNLESS(serverManager.RegisterServers());
+
+#ifdef HAVE_HOTKEY
+	HotkeyService hotkeyService;
+	FileUtils::LogLine("Starting HotkeyService");
+	hotkeyService.Start();
+#endif
 
 #ifdef HAVE_VCON
 	VirtualControllerService vconService;

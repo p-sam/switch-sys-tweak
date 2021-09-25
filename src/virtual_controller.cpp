@@ -1,18 +1,20 @@
 #include "virtual_controller.hpp"
 #include <cstring>
 
-static HiddbgHdlsSessionId g_hdlsSessionId;
+static HiddbgHdlsSessionId g_hdls_session_id;
 
 Result VirtualController::Initialize() { 
 	Result rc = hiddbgInitialize();
+
 	if(R_SUCCEEDED(rc)) {
-		rc = hiddbgAttachHdlsWorkBuffer(&g_hdlsSessionId);
+		rc = hiddbgAttachHdlsWorkBuffer(&g_hdls_session_id);
 	}
+
 	return rc;
 }
 
 void VirtualController::Exit() {
-	hiddbgReleaseHdlsWorkBuffer(g_hdlsSessionId);
+	hiddbgReleaseHdlsWorkBuffer(g_hdls_session_id);
 	hiddbgExit();
 }
 
@@ -102,7 +104,7 @@ Result VirtualController::FlushState() {
 	}
 
 	bool attached;
-	Result rc = hiddbgIsHdlsVirtualDeviceAttached(g_hdlsSessionId, this->hdlsHandle, &attached);
+	Result rc = hiddbgIsHdlsVirtualDeviceAttached(g_hdls_session_id, this->hdlsHandle, &attached);
 
 	if(R_FAILED(rc) || !attached) {
 		this->Disconnect();

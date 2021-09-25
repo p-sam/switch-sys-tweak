@@ -72,7 +72,7 @@ ams::Result FileUtils::InitializeAsync() {
 }
 
 ams::Result FileUtils::Initialize() {
-#if ENABLE_LOGGING
+#ifdef ENABLE_LOGGING
 	R_TRY(timeInitialize());
 
 	__libnx_init_time();
