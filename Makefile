@@ -28,7 +28,7 @@ TOGGLES := LOGGING CUSTOM_HOTKEY
 #---------------------------------------------------------------------------------
 ENABLED_FEATURES := $(foreach feat,$(FEATURES),$(if $(or $(FEAT_$(feat)),$(FEAT_ALL)),$(feat)))
 DEFINES += $(foreach feat,$(ENABLED_FEATURES),-DHAVE_$(feat))
-ENABLED_TOGGLES := $(foreach toggle,$(TOGGLES),$(if $(or $(TOGL_$(feat)),$(TOGL_ALL)),$(toggle)))
+ENABLED_TOGGLES := $(foreach toggle,$(TOGGLES),$(if $(or $(TOGL_$(toggle)),$(TOGL_ALL)),$(toggle)))
 DEFINES += $(foreach toggle,$(ENABLED_TOGGLES),-DENABLE_$(toggle))
 
 #---------------------------------------------------------------------------------
