@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/benhoyt/inih
+	branch = master
+	commit = 4f251f0ff766052c342823dfa52a04f486cc4f94
+	parent = ef73ef37538b8dc9b5c51242ef0ce1ace5d34d3c
+	method = merge
+	cmdver = 0.4.3
