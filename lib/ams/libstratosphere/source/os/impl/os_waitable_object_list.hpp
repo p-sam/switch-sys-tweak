@@ -21,7 +21,7 @@ namespace ams::os::impl {
 
     class WaitableObjectList {
         public:
-            using ListType = util::IntrusiveListMemberTraits<&WaitableHolderBase::object_list_node>::ListType;
+            using ListType = util::IntrusiveListMemberTraitsByNonConstexprOffsetOf<&WaitableHolderBase::object_list_node>::ListType;
         private:
             ListType object_list;
         public:

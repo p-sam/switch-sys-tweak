@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/p-sam/libams
 	branch = ipc
-	commit = 0db94de9c4e5d476170519685ed233679e8a8e62
-	parent = 32979265f6b899ad2eb61f9509eb80a5c41f7790
+	commit = 3110603de25908fa87bb855fb98ab55027925d53
+	parent = 8065287aa636a7d73d9b10e08be60d42b28bbc92
 	method = merge
 	cmdver = 0.4.3

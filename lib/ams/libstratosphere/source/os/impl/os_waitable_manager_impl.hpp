@@ -30,7 +30,7 @@ namespace ams::os::impl {
             static constexpr s32 WaitInvalid   = -3;
             static constexpr s32 WaitCancelled = -2;
             static constexpr s32 WaitTimedOut  = -1;
-            using ListType = util::IntrusiveListMemberTraits<&WaitableHolderBase::manager_node>::ListType;
+            using ListType = util::IntrusiveListMemberTraitsByNonConstexprOffsetOf<&WaitableHolderBase::manager_node>::ListType;
         private:
             ListType waitable_list;
             WaitableHolderBase *signaled_holder;

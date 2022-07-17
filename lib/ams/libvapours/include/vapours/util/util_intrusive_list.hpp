@@ -45,13 +45,13 @@ namespace ams::util {
                 return this->next != this;
             }
         private:
-            ALWAYS_INLINE void LinkPrev(IntrusiveListNode *node) {
+            constexpr ALWAYS_INLINE void LinkPrev(IntrusiveListNode *node) {
                 /* We can't link an already linked node. */
                 AMS_ASSERT(!node->IsLinked());
                 this->SplicePrev(node, node);
             }
 
-            ALWAYS_INLINE void SplicePrev(IntrusiveListNode *first, IntrusiveListNode *last) {
+            constexpr ALWAYS_INLINE void SplicePrev(IntrusiveListNode *first, IntrusiveListNode *last) {
                 /* Splice a range into the list. */
                 auto last_prev = last->prev;
                 first->prev = this->prev;
@@ -60,13 +60,13 @@ namespace ams::util {
                 this->prev = last_prev;
             }
 
-            ALWAYS_INLINE void LinkNext(IntrusiveListNode *node) {
+            constexpr ALWAYS_INLINE void LinkNext(IntrusiveListNode *node) {
                 /* We can't link an already linked node. */
                 AMS_ASSERT(!node->IsLinked());
                 return this->SpliceNext(node, node);
             }
 
-            ALWAYS_INLINE void SpliceNext(IntrusiveListNode *first, IntrusiveListNode *last) {
+            constexpr ALWAYS_INLINE void SpliceNext(IntrusiveListNode *first, IntrusiveListNode *last) {
                 /* Splice a range into the list. */
                 auto last_prev = last->prev;
                 first->prev = this;
@@ -75,11 +75,11 @@ namespace ams::util {
                 this->next = first;
             }
 
-            ALWAYS_INLINE void Unlink() {
+            constexpr ALWAYS_INLINE void Unlink() {
                 this->Unlink(this->next);
             }
 
-            ALWAYS_INLINE void Unlink(IntrusiveListNode *last) {
+            constexpr ALWAYS_INLINE void Unlink(IntrusiveListNode *last) {
                 /* Unlink a node from a next node. */
                 auto last_prev = last->prev;
                 this->prev->next = last;
@@ -88,19 +88,19 @@ namespace ams::util {
                 this->prev = last_prev;
             }
 
-            ALWAYS_INLINE IntrusiveListNode *GetPrev() {
+            constexpr ALWAYS_INLINE IntrusiveListNode *GetPrev() {
                 return this->prev;
             }
 
-            ALWAYS_INLINE const IntrusiveListNode *GetPrev() const {
+            constexpr ALWAYS_INLINE const IntrusiveListNode *GetPrev() const {
                 return this->prev;
             }
 
-            ALWAYS_INLINE IntrusiveListNode *GetNext() {
+            constexpr ALWAYS_INLINE IntrusiveListNode *GetNext() {
                 return this->next;
             }
 
-            ALWAYS_INLINE const IntrusiveListNode *GetNext() const {
+            constexpr ALWAYS_INLINE const IntrusiveListNode *GetNext() const {
                 return this->next;
             }
     };
@@ -139,51 +139,51 @@ namespace ams::util {
                     private:
                         pointer node;
                     public:
-                        ALWAYS_INLINE explicit Iterator(pointer n) : node(n) { /* ... */ }
+                        constexpr ALWAYS_INLINE explicit Iterator(pointer n) : node(n) { /* ... */ }
 
-                        ALWAYS_INLINE bool operator==(const Iterator &rhs) const {
+                        constexpr ALWAYS_INLINE bool operator==(const Iterator &rhs) const {
                             return this->node == rhs.node;
                         }
 
-                        ALWAYS_INLINE bool operator!=(const Iterator &rhs) const {
+                        constexpr ALWAYS_INLINE bool operator!=(const Iterator &rhs) const {
                             return !(*this == rhs);
                         }
 
-                        ALWAYS_INLINE pointer operator->() const {
+                        constexpr ALWAYS_INLINE pointer operator->() const {
                             return this->node;
                         }
 
-                        ALWAYS_INLINE reference operator*() const {
+                        constexpr ALWAYS_INLINE reference operator*() const {
                             return *this->node;
                         }
 
-                        ALWAYS_INLINE Iterator &operator++() {
+                        constexpr ALWAYS_INLINE Iterator &operator++() {
                             this->node = this->node->next;
                             return *this;
                         }
 
-                        ALWAYS_INLINE Iterator &operator--() {
+                        constexpr ALWAYS_INLINE Iterator &operator--() {
                             this->node = this->node->prev;
                             return *this;
                         }
 
-                        ALWAYS_INLINE Iterator operator++(int) {
+                        constexpr ALWAYS_INLINE Iterator operator++(int) {
                             const Iterator it{*this};
                             ++(*this);
                             return it;
                         }
 
-                        ALWAYS_INLINE Iterator operator--(int) {
+                        constexpr ALWAYS_INLINE Iterator operator--(int) {
                             const Iterator it{*this};
                             --(*this);
                             return it;
                         }
 
-                        ALWAYS_INLINE operator Iterator<true>() const {
+                        constexpr ALWAYS_INLINE operator Iterator<true>() const {
                             return Iterator<true>(this->node);
                         }
 
-                        ALWAYS_INLINE Iterator<false> GetNonConstIterator() const {
+                        constexpr ALWAYS_INLINE Iterator<false> GetNonConstIterator() const {
                             return Iterator<false>(const_cast<IntrusiveListImpl::pointer>(this->node));
                         }
                 };
@@ -191,97 +191,97 @@ namespace ams::util {
                 constexpr ALWAYS_INLINE IntrusiveListImpl() : root_node() { /* ... */ }
 
                 /* Iterator accessors. */
-                ALWAYS_INLINE iterator begin() {
+                constexpr ALWAYS_INLINE iterator begin() {
                     return iterator(this->root_node.GetNext());
                 }
 
-                ALWAYS_INLINE const_iterator begin() const {
+                constexpr ALWAYS_INLINE const_iterator begin() const {
                     return const_iterator(this->root_node.GetNext());
                 }
 
-                ALWAYS_INLINE iterator end() {
+                constexpr ALWAYS_INLINE iterator end() {
                     return iterator(&this->root_node);
                 }
 
-                ALWAYS_INLINE const_iterator end() const {
+                constexpr ALWAYS_INLINE const_iterator end() const {
                     return const_iterator(&this->root_node);
                 }
 
-                ALWAYS_INLINE iterator iterator_to(reference v) {
+                constexpr ALWAYS_INLINE iterator iterator_to(reference v) {
                     /* Only allow iterator_to for values in lists. */
                     AMS_ASSERT(v.IsLinked());
                     return iterator(&v);
                 }
 
-                ALWAYS_INLINE const_iterator iterator_to(const_reference v) const {
+                constexpr ALWAYS_INLINE const_iterator iterator_to(const_reference v) const {
                     /* Only allow iterator_to for values in lists. */
                     AMS_ASSERT(v.IsLinked());
                     return const_iterator(&v);
                 }
 
                 /* Content management. */
-                ALWAYS_INLINE bool empty() const {
+                constexpr ALWAYS_INLINE bool empty() const {
                     return !this->root_node.IsLinked();
                 }
 
-                ALWAYS_INLINE size_type size() const {
+                constexpr ALWAYS_INLINE size_type size() const {
                     return static_cast<size_type>(std::distance(this->begin(), this->end()));
                 }
 
-                ALWAYS_INLINE reference back() {
+                constexpr ALWAYS_INLINE reference back() {
                     return *this->root_node.GetPrev();
                 }
 
-                ALWAYS_INLINE const_reference back() const {
+                constexpr ALWAYS_INLINE const_reference back() const {
                     return *this->root_node.GetPrev();
                 }
 
-                ALWAYS_INLINE reference front() {
+                constexpr ALWAYS_INLINE reference front() {
                     return *this->root_node.GetNext();
                 }
 
-                ALWAYS_INLINE const_reference front() const {
+                constexpr ALWAYS_INLINE const_reference front() const {
                     return *this->root_node.GetNext();
                 }
 
-                ALWAYS_INLINE void push_back(reference node) {
+                constexpr ALWAYS_INLINE void push_back(reference node) {
                     this->root_node.LinkPrev(&node);
                 }
 
-                ALWAYS_INLINE void push_front(reference node) {
+                constexpr ALWAYS_INLINE void push_front(reference node) {
                     this->root_node.LinkNext(&node);
                 }
 
-                ALWAYS_INLINE void pop_back() {
+                constexpr ALWAYS_INLINE void pop_back() {
                     this->root_node.GetPrev()->Unlink();
                 }
 
-                ALWAYS_INLINE void pop_front() {
+                constexpr ALWAYS_INLINE void pop_front() {
                     this->root_node.GetNext()->Unlink();
                 }
 
-                ALWAYS_INLINE iterator insert(const_iterator pos, reference node) {
+                constexpr ALWAYS_INLINE iterator insert(const_iterator pos, reference node) {
                     pos.GetNonConstIterator()->LinkPrev(&node);
                     return iterator(&node);
                 }
 
-                ALWAYS_INLINE void splice(const_iterator pos, IntrusiveListImpl &o) {
+                constexpr ALWAYS_INLINE void splice(const_iterator pos, IntrusiveListImpl &o) {
                     splice_impl(pos, o.begin(), o.end());
                 }
 
-                ALWAYS_INLINE void splice(const_iterator pos, IntrusiveListImpl &o, const_iterator first) {
+                constexpr ALWAYS_INLINE void splice(const_iterator pos, IntrusiveListImpl &o, const_iterator first) {
                     AMS_UNUSED(o);
                     const_iterator last(first);
                     std::advance(last, 1);
                     splice_impl(pos, first, last);
                 }
 
-                ALWAYS_INLINE void splice(const_iterator pos, IntrusiveListImpl &o, const_iterator first, const_iterator last) {
+                constexpr ALWAYS_INLINE void splice(const_iterator pos, IntrusiveListImpl &o, const_iterator first, const_iterator last) {
                     AMS_UNUSED(o);
                     splice_impl(pos, first, last);
                 }
 
-                ALWAYS_INLINE iterator erase(const_iterator pos) {
+                constexpr ALWAYS_INLINE iterator erase(const_iterator pos) {
                     if (pos == this->end()) {
                         return this->end();
                     }
@@ -290,13 +290,13 @@ namespace ams::util {
                     return it;
                 }
 
-                ALWAYS_INLINE void clear() {
+                constexpr ALWAYS_INLINE void clear() {
                     while (!this->empty()) {
                         this->pop_front();
                     }
                 }
             private:
-                ALWAYS_INLINE void splice_impl(const_iterator _pos, const_iterator _first, const_iterator _last) {
+                constexpr ALWAYS_INLINE void splice_impl(const_iterator _pos, const_iterator _first, const_iterator _last) {
                     if (_first == _last) {
                         return;
                     }
@@ -306,7 +306,6 @@ namespace ams::util {
                     first->Unlink(&*last);
                     pos->SplicePrev(&*first, &*first);
                 }
-
         };
 
     }
@@ -347,51 +346,51 @@ namespace ams::util {
                 private:
                     ImplIterator iterator;
                 private:
-                    explicit ALWAYS_INLINE Iterator(ImplIterator it) : iterator(it) { /* ... */ }
+                    constexpr explicit ALWAYS_INLINE Iterator(ImplIterator it) : iterator(it) { /* ... */ }
 
-                    ALWAYS_INLINE ImplIterator GetImplIterator() const {
+                    constexpr ALWAYS_INLINE ImplIterator GetImplIterator() const {
                         return this->iterator;
                     }
                 public:
-                    ALWAYS_INLINE bool operator==(const Iterator &rhs) const {
+                    constexpr ALWAYS_INLINE bool operator==(const Iterator &rhs) const {
                         return this->iterator == rhs.iterator;
                     }
 
-                    ALWAYS_INLINE bool operator!=(const Iterator &rhs) const {
+                    constexpr ALWAYS_INLINE bool operator!=(const Iterator &rhs) const {
                         return !(*this == rhs);
                     }
 
-                    ALWAYS_INLINE pointer operator->() const {
+                    constexpr ALWAYS_INLINE pointer operator->() const {
                         return &Traits::GetParent(*this->iterator);
                     }
 
-                    ALWAYS_INLINE reference operator*() const {
+                    constexpr ALWAYS_INLINE reference operator*() const {
                         return Traits::GetParent(*this->iterator);
                     }
 
-                    ALWAYS_INLINE Iterator &operator++() {
+                    constexpr ALWAYS_INLINE Iterator &operator++() {
                         ++this->iterator;
                         return *this;
                     }
 
-                    ALWAYS_INLINE Iterator &operator--() {
+                    constexpr ALWAYS_INLINE Iterator &operator--() {
                         --this->iterator;
                         return *this;
                     }
 
-                    ALWAYS_INLINE Iterator operator++(int) {
+                   constexpr  ALWAYS_INLINE Iterator operator++(int) {
                         const Iterator it{*this};
                         ++this->iterator;
                         return it;
                     }
 
-                    ALWAYS_INLINE Iterator operator--(int) {
+                    constexpr ALWAYS_INLINE Iterator operator--(int) {
                         const Iterator it{*this};
                         --this->iterator;
                         return it;
                     }
 
-                    ALWAYS_INLINE operator Iterator<true>() const {
+                    constexpr ALWAYS_INLINE operator Iterator<true>() const {
                         return Iterator<true>(this->iterator);
                     }
             };
@@ -415,130 +414,130 @@ namespace ams::util {
             constexpr ALWAYS_INLINE IntrusiveList() : impl() { /* ... */ }
 
             /* Iterator accessors. */
-            ALWAYS_INLINE iterator begin() {
+            constexpr ALWAYS_INLINE iterator begin() {
                 return iterator(this->impl.begin());
             }
 
-            ALWAYS_INLINE const_iterator begin() const {
+            constexpr ALWAYS_INLINE const_iterator begin() const {
                 return const_iterator(this->impl.begin());
             }
 
-            ALWAYS_INLINE iterator end() {
+            constexpr ALWAYS_INLINE iterator end() {
                 return iterator(this->impl.end());
             }
 
-            ALWAYS_INLINE const_iterator end() const {
+            constexpr ALWAYS_INLINE const_iterator end() const {
                 return const_iterator(this->impl.end());
             }
 
-            ALWAYS_INLINE const_iterator cbegin() const {
+            constexpr ALWAYS_INLINE const_iterator cbegin() const {
                 return this->begin();
             }
 
-            ALWAYS_INLINE const_iterator cend() const {
+            constexpr ALWAYS_INLINE const_iterator cend() const {
                 return this->end();
             }
 
-            ALWAYS_INLINE reverse_iterator rbegin() {
+            constexpr ALWAYS_INLINE reverse_iterator rbegin() {
                 return reverse_iterator(this->end());
             }
 
-            ALWAYS_INLINE const_reverse_iterator rbegin() const {
+            constexpr ALWAYS_INLINE const_reverse_iterator rbegin() const {
                 return const_reverse_iterator(this->end());
             }
 
-            ALWAYS_INLINE reverse_iterator rend() {
+            constexpr ALWAYS_INLINE reverse_iterator rend() {
                 return reverse_iterator(this->begin());
             }
 
-            ALWAYS_INLINE const_reverse_iterator rend() const {
+            constexpr ALWAYS_INLINE const_reverse_iterator rend() const {
                 return const_reverse_iterator(this->begin());
             }
 
-            ALWAYS_INLINE const_reverse_iterator crbegin() const {
+            constexpr ALWAYS_INLINE const_reverse_iterator crbegin() const {
                 return this->rbegin();
             }
 
-            ALWAYS_INLINE const_reverse_iterator crend() const {
+            constexpr ALWAYS_INLINE const_reverse_iterator crend() const {
                 return this->rend();
             }
 
-            ALWAYS_INLINE iterator iterator_to(reference v) {
+            constexpr ALWAYS_INLINE iterator iterator_to(reference v) {
                 return iterator(this->impl.iterator_to(GetNode(v)));
             }
 
-            ALWAYS_INLINE const_iterator iterator_to(const_reference v) const {
+            constexpr ALWAYS_INLINE const_iterator iterator_to(const_reference v) const {
                 return const_iterator(this->impl.iterator_to(GetNode(v)));
             }
 
             /* Content management. */
-            ALWAYS_INLINE bool empty() const {
+            constexpr ALWAYS_INLINE bool empty() const {
                 return this->impl.empty();
             }
 
-            ALWAYS_INLINE size_type size() const {
+            constexpr ALWAYS_INLINE size_type size() const {
                 return this->impl.size();
             }
 
-            ALWAYS_INLINE reference back() {
+            constexpr ALWAYS_INLINE reference back() {
                 AMS_ASSERT(!this->impl.empty());
                 return GetParent(this->impl.back());
             }
 
-            ALWAYS_INLINE const_reference back() const {
+            constexpr ALWAYS_INLINE const_reference back() const {
                 AMS_ASSERT(!this->impl.empty());
                 return GetParent(this->impl.back());
             }
 
-            ALWAYS_INLINE reference front() {
+            constexpr ALWAYS_INLINE reference front() {
                 AMS_ASSERT(!this->impl.empty());
                 return GetParent(this->impl.front());
             }
 
-            ALWAYS_INLINE const_reference front() const {
+            constexpr ALWAYS_INLINE const_reference front() const {
                 AMS_ASSERT(!this->impl.empty());
                 return GetParent(this->impl.front());
             }
 
-            ALWAYS_INLINE void push_back(reference ref) {
+            constexpr ALWAYS_INLINE void push_back(reference ref) {
                 this->impl.push_back(GetNode(ref));
             }
 
-            ALWAYS_INLINE void push_front(reference ref) {
+            constexpr ALWAYS_INLINE void push_front(reference ref) {
                 this->impl.push_front(GetNode(ref));
             }
 
-            ALWAYS_INLINE void pop_back() {
+            constexpr ALWAYS_INLINE void pop_back() {
                 AMS_ASSERT(!this->impl.empty());
                 this->impl.pop_back();
             }
 
-            ALWAYS_INLINE void pop_front() {
+            constexpr ALWAYS_INLINE void pop_front() {
                 AMS_ASSERT(!this->impl.empty());
                 this->impl.pop_front();
             }
 
-            ALWAYS_INLINE iterator insert(const_iterator pos, reference ref) {
+            constexpr ALWAYS_INLINE iterator insert(const_iterator pos, reference ref) {
                 return iterator(this->impl.insert(pos.GetImplIterator(), GetNode(ref)));
             }
 
-            ALWAYS_INLINE void splice(const_iterator pos, IntrusiveList &o) {
+            constexpr ALWAYS_INLINE void splice(const_iterator pos, IntrusiveList &o) {
                 this->impl.splice(pos.GetImplIterator(), o.impl);
             }
 
-            ALWAYS_INLINE void splice(const_iterator pos, IntrusiveList &o, const_iterator first) {
+            constexpr ALWAYS_INLINE void splice(const_iterator pos, IntrusiveList &o, const_iterator first) {
                 this->impl.splice(pos.GetImplIterator(), o.impl, first.GetImplIterator());
             }
 
-            ALWAYS_INLINE void splice(const_iterator pos, IntrusiveList &o, const_iterator first, const_iterator last) {
+            constexpr ALWAYS_INLINE void splice(const_iterator pos, IntrusiveList &o, const_iterator first, const_iterator last) {
                 this->impl.splice(pos.GetImplIterator(), o.impl, first.GetImplIterator(), last.GetImplIterator());
             }
 
-            ALWAYS_INLINE iterator erase(const_iterator pos) {
+            constexpr ALWAYS_INLINE iterator erase(const_iterator pos) {
                 return iterator(this->impl.erase(pos.GetImplIterator()));
             }
 
-            ALWAYS_INLINE void clear() {
+            constexpr ALWAYS_INLINE void clear() {
                 this->impl.clear();
             }
     };
@@ -561,32 +560,24 @@ namespace ams::util {
                 return parent.*Member;
             }
 
-            static constexpr ALWAYS_INLINE Derived &GetParent(IntrusiveListNode &node) {
-                return util::GetParentReference<Member, Derived>(&node);
+            static ALWAYS_INLINE Derived &GetParent(IntrusiveListNode &node) {
+                return util::GetParentReference<Member, Derived>(std::addressof(node));
             }
 
-            static constexpr ALWAYS_INLINE Derived const &GetParent(IntrusiveListNode const &node) {
-                return util::GetParentReference<Member, Derived>(&node);
+            static ALWAYS_INLINE Derived const &GetParent(IntrusiveListNode const &node) {
+                return util::GetParentReference<Member, Derived>(std::addressof(node));
             }
-        private:
-            static constexpr TypedStorage<Derived> DerivedStorage = {};
-            static_assert(std::addressof(GetParent(GetNode(GetReference(DerivedStorage)))) == GetPointer(DerivedStorage));
     };
 
     template<auto T, class Derived = util::impl::GetParentType<T>>
-    class IntrusiveListMemberTraitsDeferredAssert;
+    class IntrusiveListMemberTraitsByNonConstexprOffsetOf;
 
     template<class Parent, IntrusiveListNode Parent::*Member, class Derived>
-    class IntrusiveListMemberTraitsDeferredAssert<Member, Derived> {
+    class IntrusiveListMemberTraitsByNonConstexprOffsetOf<Member, Derived> {
         public:
-            using ListType = IntrusiveList<Derived, IntrusiveListMemberTraitsDeferredAssert>;
-
-            static constexpr bool IsValid() {
-                TypedStorage<Derived> DerivedStorage = {};
-                return std::addressof(GetParent(GetNode(GetReference(DerivedStorage)))) == GetPointer(DerivedStorage);
-            }
+            using ListType = IntrusiveList<Derived, IntrusiveListMemberTraitsByNonConstexprOffsetOf>;
         private:
-            friend class IntrusiveList<Derived, IntrusiveListMemberTraitsDeferredAssert>;
+            friend class IntrusiveList<Derived, IntrusiveListMemberTraitsByNonConstexprOffsetOf>;
 
             static constexpr ALWAYS_INLINE IntrusiveListNode &GetNode(Derived &parent) {
                 return parent.*Member;
@@ -596,12 +587,16 @@ namespace ams::util {
                 return parent.*Member;
             }
 
-            static constexpr ALWAYS_INLINE Derived &GetParent(IntrusiveListNode &node) {
-                return util::GetParentReference<Member, Derived>(&node);
+            static ALWAYS_INLINE Derived &GetParent(IntrusiveListNode &node) {
+                return *reinterpret_cast<Derived *>(reinterpret_cast<char *>(std::addressof(node)) - GetOffset());
             }
 
-            static constexpr ALWAYS_INLINE Derived const &GetParent(IntrusiveListNode const &node) {
-                return util::GetParentReference<Member, Derived>(&node);
+            static ALWAYS_INLINE Derived const &GetParent(IntrusiveListNode const &node) {
+                return *reinterpret_cast<const Derived *>(reinterpret_cast<const char *>(std::addressof(node)) - GetOffset());
+            }
+
+            static ALWAYS_INLINE uintptr_t GetOffset() {
+                return reinterpret_cast<uintptr_t>(std::addressof(reinterpret_cast<Derived *>(0)->*Member));
             }
     };
 
@@ -616,19 +611,19 @@ namespace ams::util {
             friend class IntrusiveList<Derived, IntrusiveListBaseTraits>;
 
             static constexpr ALWAYS_INLINE IntrusiveListNode &GetNode(Derived &parent) {
-                return static_cast<IntrusiveListNode &>(parent);
+                return static_cast<IntrusiveListNode &>(static_cast<IntrusiveListBaseNode<Derived> &>(parent));
             }
 
             static constexpr ALWAYS_INLINE IntrusiveListNode const &GetNode(Derived const &parent) {
-                return static_cast<const IntrusiveListNode &>(parent);
+                return static_cast<const IntrusiveListNode &>(static_cast<const IntrusiveListBaseNode<Derived> &>(parent));
             }
 
             static constexpr ALWAYS_INLINE Derived &GetParent(IntrusiveListNode &node) {
-                return static_cast<Derived &>(node);
+                return static_cast<Derived &>(static_cast<IntrusiveListBaseNode<Derived> &>(node));
             }
 
             static constexpr ALWAYS_INLINE Derived const &GetParent(IntrusiveListNode const &node) {
-                return static_cast<const Derived &>(node);
+                return static_cast<const Derived &>(static_cast<const IntrusiveListBaseNode<Derived> &>(node));
             }
     };
 

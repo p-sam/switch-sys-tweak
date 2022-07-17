@@ -34,12 +34,12 @@ namespace ams::sf {
             public:
                 void *Allocate(size_t size) {
                     AMS_ASSERT(size == sizeof(T));
-                    return DefaultAllocateImpl(sizeof(Holder), alignof(Holder), offsetof(Holder, storage));
+                    return DefaultAllocateImpl(sizeof(Holder), alignof(Holder), OFFSETOF(Holder, storage));
                 }
 
                 void Deallocate(void *ptr, size_t size) {
                     AMS_ASSERT(size == sizeof(T));
-                    return DefaultDeallocateImpl(ptr, sizeof(Holder), alignof(Holder), offsetof(Holder, storage));
+                    return DefaultDeallocateImpl(ptr, sizeof(Holder), alignof(Holder), OFFSETOF(Holder, storage));
                 }
         };
 

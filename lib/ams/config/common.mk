@@ -23,7 +23,7 @@ export ATMOSPHERE_CFLAGS   := -Wall -ffunction-sections -fdata-sections -fno-str
                               -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-stack-protector \
                               -Wno-format-truncation -Wno-format-zero-length -Wno-stringop-truncation
 
-export ATMOSPHERE_CXXFLAGS := -fno-rtti -fno-exceptions -std=gnu++20
+export ATMOSPHERE_CXXFLAGS := -fno-rtti -fno-exceptions -std=gnu++20 -Wno-invalid-offsetof
 export ATMOSPHERE_ASFLAGS  :=
 
 
