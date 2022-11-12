@@ -36,7 +36,7 @@ void VirtualController::Exit() {
 
 VirtualController::VirtualController() {
 	this->hdlsHandle = {0};
-	this->hidDeviceInfo.deviceType = HidDeviceType_FullKey15;
+	this->hidDeviceInfo.deviceType = HidDeviceType_FullKey3;
 	this->hidDeviceInfo.npadInterfaceType = HidNpadInterfaceType_Bluetooth;
 
 	this->hidDeviceInfo.singleColorBody = 0xFF735A01;
@@ -84,8 +84,10 @@ void VirtualController::SetState(ControllerPacket* packet) {
 	this->clientTick = packet->tick;
 
 	this->hidState.buttons = 0;
+	this->hidState.battery_level = 4;
+	this->hidState.attribute = packet->attributes & (HiddbgHdlsAttribute_HasVirtualSixAxisSensorAcceleration | HiddbgHdlsAttribute_HasVirtualSixAxisSensorAngle);
 
-#define _UPDATE_BUTTON(packet_mask, hid_mask) if(packet->keysHeld & (packet_mask)) \
+#define _UPDATE_BUTTON(packet_mask, hid_mask) if(packet->buttons & (packet_mask)) \
 	this->hidState.buttons |= hid_mask
 
 	_UPDATE_BUTTON(CONTROLLER_PACKET_KEY_A, HidNpadButton_A);
@@ -108,10 +110,22 @@ void VirtualController::SetState(ControllerPacket* packet) {
 	_UPDATE_BUTTON(CONTROLLER_PACKET_KEY_HOME, HiddbgNpadButton_Home);
 #undef _UPDATE_BUTTON
 
-	this->hidState.analog_stick_l.x = packet->leftStick.dx * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
-	this->hidState.analog_stick_l.y = packet->leftStick.dy * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
-	this->hidState.analog_stick_r.x = packet->rightStick.dx * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
-	this->hidState.analog_stick_r.y = packet->rightStick.dy * (JOYSTICK_MAX / CONTROLLER_PACKET_STICK_MAX);
+	this->hidState.analog_stick_l.x = packet->leftStick.x;
+	this->hidState.analog_stick_l.y = packet->leftStick.y;
+	this->hidState.analog_stick_r.x = packet->rightStick.x;
+	this->hidState.analog_stick_r.y = packet->rightStick.y;
+
+	if(packet->attributes & HiddbgHdlsAttribute_HasVirtualSixAxisSensorAcceleration) {
+		this->hidState.six_axis_sensor_acceleration.x = ((float)packet->accel.x) / CONTROLLER_PACKET_VECTOR_PRECISION;
+		this->hidState.six_axis_sensor_acceleration.y = ((float)packet->accel.y) / CONTROLLER_PACKET_VECTOR_PRECISION;
+		this->hidState.six_axis_sensor_acceleration.z = ((float)packet->accel.z) / CONTROLLER_PACKET_VECTOR_PRECISION;
+	}
+
+	if(packet->attributes & HiddbgHdlsAttribute_HasVirtualSixAxisSensorAngle) {
+		this->hidState.six_axis_sensor_angle.x = ((float)packet->angle.x) / CONTROLLER_PACKET_VECTOR_PRECISION;
+		this->hidState.six_axis_sensor_angle.y = ((float)packet->angle.y) / CONTROLLER_PACKET_VECTOR_PRECISION;
+		this->hidState.six_axis_sensor_angle.z = ((float)packet->angle.z) / CONTROLLER_PACKET_VECTOR_PRECISION;
+	}
 }
 
 Result VirtualController::FlushState() {

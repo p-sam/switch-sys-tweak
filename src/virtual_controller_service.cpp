@@ -117,7 +117,7 @@ bool VirtualControllerService::ReceiveMessages() {
 		this->controllers[clientAddr.sin_addr.s_addr] = controller;
 	}
 
-	if(packet.keysHeld & CONTROLLER_PACKET_KEY_EXIT) {
+	if(packet.buttons & CONTROLLER_PACKET_KEY_EXIT) {
 		FileUtils::LogLine("%s: controller #0x%x exited", __PRETTY_FUNCTION__, clientAddr.sin_addr.s_addr);
 		delete controller;
 		this->controllers.erase(clientAddr.sin_addr.s_addr);
@@ -156,7 +156,7 @@ void VirtualControllerService::ProcessThreadFunc(void* arg) {
 
 	service->BindServer();
 
-	FileUtils::LogLine("%s: listening on UDP port %d", __PRETTY_FUNCTION__, VIRTUAL_CONTROLLER_PORT);
+	FileUtils::LogLine("%s: listening on UDP port %d (MAGIC: 0x%08X; PACKET_SIZE: 0x%X)", __PRETTY_FUNCTION__, VIRTUAL_CONTROLLER_PORT, CONTROLLER_PACKET_MAGIC, sizeof(ControllerPacket));
 
 	u64 lastCleanupTicks = armGetSystemTick();
 	u64 errorCount = 0;

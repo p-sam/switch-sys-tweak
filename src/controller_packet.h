@@ -18,8 +18,10 @@
 
 #include <switch.h>
 
-#define CONTROLLER_PACKET_MAGIC (0x33434332)
-#define CONTROLLER_PACKET_STICK_MAX (0x9C)
+#define CONTROLLER_PACKET_MAGIC (0x33434333)
+#define CONTROLLER_PACKET_STICK_MAX JOYSTICK_MAX
+#define CONTROLLER_PACKET_VECTOR_MAX 1.0f
+#define CONTROLLER_PACKET_VECTOR_PRECISION 10000000.0f
 
 enum {
 	CONTROLLER_PACKET_KEY_A = BIT(0),
@@ -44,21 +46,19 @@ enum {
 };
 
 typedef struct {
-	s16 dx;
-	s16 dy;
-} ControllerPacketStick;
-
-typedef struct {
-	s16 x;
-	s16 y;
-	s16 z;
-} ControllerPacketVector;
+	s32 x;
+	s32 y;
+	s32 z;
+} ControllerPacketHidVector;
 
 typedef struct {
 	u32 magic; // CONTROLLER_PACKET_MAGIC
 	u64 tick;
-	u32 keysHeld;
-	ControllerPacketStick leftStick;
-	ControllerPacketStick rightStick;
+	u32 buttons;
+	u32 attributes;
+	HidAnalogStickState leftStick;
+	HidAnalogStickState rightStick;
+	ControllerPacketHidVector accel;
+	ControllerPacketHidVector angle;
 } ControllerPacket;
 
