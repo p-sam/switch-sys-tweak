@@ -15,15 +15,23 @@
  */
 
 #include "virtual_controller.hpp"
+#include "malloc.h"
 #include <cstring>
 
 static HiddbgHdlsSessionId g_hdls_session_id;
+static void* g_hdls_work_buf;
 
-Result VirtualController::Initialize() { 
+Result VirtualController::Initialize() {
+	g_hdls_work_buf = memalign(0x1000, 0x1000);
+
+	if(!g_hdls_work_buf) {
+		return MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
+	}
+
 	Result rc = hiddbgInitialize();
 
 	if(R_SUCCEEDED(rc)) {
-		rc = hiddbgAttachHdlsWorkBuffer(&g_hdls_session_id);
+		rc = hiddbgAttachHdlsWorkBuffer(&g_hdls_session_id, g_hdls_work_buf, 0x1000);
 	}
 
 	return rc;
