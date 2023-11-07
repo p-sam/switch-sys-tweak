@@ -29,8 +29,6 @@
 #include <errno.h>
 
 static const SocketInitConfig g_socketInitConfig = {
-	.bsdsockets_version = 1,
-
 	.tcp_tx_buf_size = 0x100,
 	.tcp_rx_buf_size = 0x100,
 	.tcp_tx_buf_max_size = 0x100,
