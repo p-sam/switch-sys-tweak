@@ -28,19 +28,7 @@
 #include <netinet/in.h>
 #include <errno.h>
 
-static const SocketInitConfig g_socketInitConfig = {
-	.bsdsockets_version = 1,
-
-	.tcp_tx_buf_size = 0x100,
-	.tcp_rx_buf_size = 0x100,
-	.tcp_tx_buf_max_size = 0x100,
-	.tcp_rx_buf_max_size = 0x100,
-
-	.udp_tx_buf_size = 0x100,
-	.udp_rx_buf_size = 0x8000,
-
-	.sb_efficiency = 1,
-};
+static SocketInitConfig g_socketInitConfig;
 
 VirtualControllerService::VirtualControllerService(): threadMutex(false) {
 
@@ -151,6 +139,17 @@ void VirtualControllerService::ProcessThreadFunc(void* arg) {
 	VirtualControllerService* service = (VirtualControllerService*)arg;
 	svcSleepThread(6000000000ULL);
 	FileUtils::LogLine("%s: Starting", __PRETTY_FUNCTION__);
+
+	g_socketInitConfig.tcp_tx_buf_size = 0x100;
+	g_socketInitConfig.tcp_rx_buf_size = 0x100;
+	g_socketInitConfig.tcp_tx_buf_max_size = 0x100;
+	g_socketInitConfig.tcp_rx_buf_max_size = 0x100;
+
+	g_socketInitConfig.udp_tx_buf_size = 0x100;
+	g_socketInitConfig.udp_rx_buf_size = 0x8000;
+
+	g_socketInitConfig.sb_efficiency = 1;
+
 	R_ABORT_UNLESS(socketInitialize(&g_socketInitConfig));
 	R_ABORT_UNLESS(VirtualController::Initialize());
 

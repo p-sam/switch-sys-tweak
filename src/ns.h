@@ -25,7 +25,7 @@ typedef enum {
 	NacpVideoCaptureMode_Disabled = 0,
 	NacpVideoCaptureMode_Manual = 1,
 	NacpVideoCaptureMode_Automatic = 2,
-} PACKED NacpVideoCaptureMode;
+}  __attribute__((packed)) NacpVideoCaptureMode;
 
 typedef struct {
 	NacpLanguageEntry lang_entries[16];
@@ -78,6 +78,8 @@ typedef struct {
 	u8 required_network_service_license_on_launch;
 	char unk_x3214[3564];
 } Nacp;
+
+static_assert(sizeof(NacpStruct) == sizeof(Nacp));
 
 typedef struct {
 	Nacp nacp;
