@@ -20,41 +20,48 @@
 #include "ini.h"
 
 static int _ProcessControlDataIniHandler(void* user, const char* section, const char* name, const char* value) {
-	NsAppControlData* data = (NsAppControlData*)user;
+	Nacp* nacp = (Nacp*)user;
 
 	if (strcasecmp(section, "override_nacp") == 0) {
 		if (strcasecmp(name, "name") == 0) {
-			for(unsigned int i = 0; i < sizeof(data->nacp.lang_entries) / sizeof(data->nacp.lang_entries[0]); i++) {
-				strncpy(data->nacp.lang_entries[i].name, value, sizeof(data->nacp.lang_entries[i].name)-1);
+			for(unsigned int i = 0; i < sizeof(nacp->lang_entries) / sizeof(nacp->lang_entries[0]); i++) {
+				strncpy(nacp->lang_entries[i].name, value, sizeof(nacp->lang_entries[i].name)-1);
 			}
 		} else if (strcasecmp(name, "author") == 0) {
-			for(unsigned int i = 0; i < sizeof(data->nacp.lang_entries) / sizeof(data->nacp.lang_entries[0]); i++) {
-				strncpy(data->nacp.lang_entries[i].author, value, sizeof(data->nacp.lang_entries[i].author)-1);
+			for(unsigned int i = 0; i < sizeof(nacp->lang_entries) / sizeof(nacp->lang_entries[0]); i++) {
+				strncpy(nacp->lang_entries[i].author, value, sizeof(nacp->lang_entries[i].author)-1);
 			}
 		} else if (strcasecmp(name, "display_version") == 0) {
-			strncpy(data->nacp.display_version, value, sizeof(data->nacp.display_version)-1);
+			strncpy(nacp->display_version, value, sizeof(nacp->display_version)-1);
 		} else if (strcasecmp(name, "startup_user_account") == 0) {
-			data->nacp.startup_user_account = (*value == 't' || *value == '1');
+			nacp->startup_user_account = (*value == 't' || *value == '1');
 		}
 	}
 
 	return 1;
 }
 
-static void _ProcessControlData(u64 tid, NsAppControlData* data, u64* size) {
+static void _ProcessControlData(u64 tid, u8* buf, size_t buf_size, u64* out_size) {
+	if(buf_size < sizeof(Nacp)) {
+		return;
+	}
+
 	char path[50] = {0};
+
 	snprintf(path, sizeof(path)-1, "/atmosphere/contents/%016lx/config.ini", tid);
-	ini_parse(path, _ProcessControlDataIniHandler, data);
+	ini_parse(path, _ProcessControlDataIniHandler, buf);
+
+	void* icon = &buf[sizeof(Nacp)];
 	snprintf(path, sizeof(path)-1, "/atmosphere/contents/%016lx/icon.jpg", tid);
 	
 	FILE* f = fopen(path, "rb");
 	if(f != NULL) {
-		fread(&data->icon[0], sizeof(data->icon), 1, f);
-		*size = sizeof(data->nacp) + ftell(f);
+		fread(icon, buf_size - sizeof(Nacp), 1, f);
+		*out_size = sizeof(Nacp) + ftell(f);
 		fclose(f);
 	}
 
-	FileUtils::LogLine("_ProcessControlData(%016lx) // [%ld|%s] %s", tid, *size, f ? "loaded" : "failed", path);
+	FileUtils::LogLine("_ProcessControlData(%016lx) // [%ld|%s] %s", tid, *out_size, f ? "loaded" : "failed", path);
 }
 
 bool NsAm2MitmService::ShouldMitm(const ams::sm::MitmProcessInfo& client_info) {
@@ -98,8 +105,8 @@ ams::Result NsROAppControlDataService::GetAppControlData(u8 flag, u64 tid, const
 
 	FILE_LOG_IPC_CLASS("(%u, 0x%016lx, buf[0x%lx]) // %x[0x%lx]",  flag, tid, buffer.GetSize(), rc, out_size.GetValue());
 
-	if(R_SUCCEEDED(rc) && buffer.GetSize() >= sizeof(NsAppControlData) && FileUtils::WaitInitialized()) {
-		_ProcessControlData(tid, (NsAppControlData*)buffer.GetPointer(), out_size.GetPointer());
+	if(R_SUCCEEDED(rc) && FileUtils::WaitInitialized()) {
+		_ProcessControlData(tid, buffer.GetPointer(), buffer.GetSize(), out_size.GetPointer());
 	}
 	return rc;
 }
