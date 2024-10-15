@@ -103,7 +103,7 @@ ams::Result NsROAppControlDataService::GetAppControlData(u8 flag, u64 tid, const
 		.buffers = {{buffer.GetPointer(), buffer.GetSize()}},
 	);
 
-	FILE_LOG_IPC_CLASS("(%u, 0x%016lx, buf[0x%lx]) // %x[0x%lx]",  flag, tid, buffer.GetSize(), rc, out_size.GetValue());
+	FILE_LOG_IPC_CLASS("(%u, 0x%016lx, buf[0x%lx]) // %x[0x%lx]", flag, tid, buffer.GetSize(), rc, out_size.GetValue());
 
 	if(R_SUCCEEDED(rc) && FileUtils::WaitInitialized()) {
 		_ProcessControlData(tid, buffer.GetPointer(), buffer.GetSize(), out_size.GetPointer());
@@ -126,5 +126,43 @@ ams::Result NsROAppControlDataService::ConvertAppLanguageToLanguageCode(u8 lange
 ams::Result NsROAppControlDataService::ConvertLanguageCodeToAppLanguage(u64 langcode, ams::sf::Out<u8> out_langentry) {
 	Result rc = serviceDispatchInOut(this->srv.get(), NsROAppControlDataInterfaceCmdId::ConvertLanguageCodeToAppLanguage, langcode, *out_langentry.GetPointer());
 	FILE_LOG_IPC_CLASS("(0x%016lx); // %x[0x%02x]", langcode, rc, out_langentry.GetValue());
+	return rc;
+}
+
+ams::Result NsROAppControlDataService::SelectApplicationDesiredLanguage() {
+	Result rc = serviceDispatch(this->srv.get(), NsROAppControlDataInterfaceCmdId::SelectApplicationDesiredLanguage);
+	FILE_LOG_IPC_CLASS("(); // %x", rc);
+	return rc;
+}
+
+ams::Result NsROAppControlDataService::Unk1(u8 flag, u64 tid, const ams::sf::OutBuffer &buffer, ams::sf::Out<u64> out_size) {
+	const struct {
+		u8 flag;
+		u64 tid;
+	} in = {flag, tid};
+
+	Result rc = serviceDispatchInOut(this->srv.get(), NsROAppControlDataInterfaceCmdId::Unk1, in, *out_size.GetPointer(),
+		.buffer_attrs = {SfBufferAttr_HipcMapAlias | SfBufferAttr_Out},
+		.buffers = {{buffer.GetPointer(), buffer.GetSize()}},
+	);
+
+	FILE_LOG_IPC_CLASS("(%u, 0x%016lx, buf[0x%lx]) // %x[0x%lx]", flag, tid, buffer.GetSize(), rc, out_size.GetValue());
+
+	return rc;
+}
+
+ams::Result NsROAppControlDataService::Unk2(u8 flag, u64 tid, const ams::sf::OutBuffer &buffer, ams::sf::Out<u64> out_size) {
+	const struct {
+		u8 flag;
+		u64 tid;
+	} in = {flag, tid};
+
+	Result rc = serviceDispatchInOut(this->srv.get(), NsROAppControlDataInterfaceCmdId::Unk2, in, *out_size.GetPointer(),
+		.buffer_attrs = {SfBufferAttr_HipcMapAlias | SfBufferAttr_Out},
+		.buffers = {{buffer.GetPointer(), buffer.GetSize()}},
+	);
+
+	FILE_LOG_IPC_CLASS("(%u, 0x%016lx, buf[0x%lx]) // %x[0x%lx]", flag, tid, buffer.GetSize(), rc, out_size.GetValue());
+
 	return rc;
 }
