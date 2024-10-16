@@ -29,7 +29,7 @@ jobs:
           make clean
           make FEAT_ALL="Y" -j4
       - name: store - FEAT_ALL
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: sys-tweak.nsp
           path: out/sys-tweak.nsp
@@ -39,7 +39,7 @@ jobs:
           make clean
           make FEAT_ALL="Y" TOGL_LOGGING="Y" -j4
       - name: store - FEAT_ALL TOGL_LOGGING
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: sys-tweak_log.nsp
           path: out/sys-tweak.nsp
